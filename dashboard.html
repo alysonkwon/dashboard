@@ -331,7 +331,7 @@ function switchTab(name){
 
 // 환율
 async function loadFX(){
-  const prev={USD:1376.5,EUR:1486.2,JPY:9.02};
+  const prev={USD:1376.5,EUR:1486.2,JPY:902.0};
   try{
     const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
     const d=await r.json();
