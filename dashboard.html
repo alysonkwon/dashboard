@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>영업 실적 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -20,7 +20,7 @@
   --red:#dc2626;
   --amber:#d97706;
 }
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;min-height:100vh;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;min-height:100vh;}
 .container{max-width:1200px;margin:0 auto;padding:20px;}
 
 /* 헤더 */
@@ -224,38 +224,61 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 
     <!-- 파이프라인 상세 리스트 -->
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-        <div class="card-title" style="margin-bottom:0;">2026년 파이프라인 상세 리스트</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <!-- 분기 필터 -->
-          <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
-            <button class="filter-btn q-btn active" onclick="setQFilter('전체',this)">전체</button>
-            <button class="filter-btn q-btn" onclick="setQFilter('Q1',this)">Q1</button>
-            <button class="filter-btn q-btn" onclick="setQFilter('Q2',this)">Q2</button>
-            <button class="filter-btn q-btn" onclick="setQFilter('Q3',this)">Q3</button>
-            <button class="filter-btn q-btn" onclick="setQFilter('Q4',this)">Q4</button>
+      <div style="margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:12px;">2026년 파이프라인 상세 리스트</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+
+          <!-- 분기 필터 (다중선택) -->
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:10px;color:var(--muted);margin-right:2px;">분기</span>
+            <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
+              <button class="filter-btn q-btn active" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
+              <button class="filter-btn q-btn active" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
+              <button class="filter-btn q-btn active" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
+              <button class="filter-btn q-btn active" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
+            </div>
           </div>
-          <!-- Stage 필터 -->
-          <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
-            <button class="filter-btn s-btn active" onclick="setStageFilter('전체',this)">전체</button>
-            <button class="filter-btn s-btn" onclick="setStageFilter('25% (Pipeline)',this)">25%</button>
-            <button class="filter-btn s-btn" onclick="setStageFilter('50%(Best)',this)">50%</button>
-            <button class="filter-btn s-btn" onclick="setStageFilter('75%(Commit)',this)">75%</button>
-            <button class="filter-btn s-btn" onclick="setStageFilter('90%(Won)',this)">90%</button>
+
+          <!-- Stage 필터 (다중선택) -->
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:10px;color:var(--muted);margin-right:2px;">Stage</span>
+            <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
+              <button class="filter-btn s-btn active" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)" style="color:#60A5FA">25%</button>
+              <button class="filter-btn s-btn active" data-val="50%(Best)" onclick="toggleFilter('s',this)" style="color:#2dd4bf">50%</button>
+              <button class="filter-btn s-btn active" data-val="75%(Commit)" onclick="toggleFilter('s',this)" style="color:#fbbf24">75%</button>
+              <button class="filter-btn s-btn active" data-val="90%(Won)" onclick="toggleFilter('s',this)" style="color:#34d399">90%</button>
+              <button class="filter-btn s-btn active" data-val="100%(Invoice)" onclick="toggleFilter('s',this)" style="color:var(--muted)">100%</button>
+            </div>
           </div>
+
+          <!-- 영업구분 필터 (다중선택) -->
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:10px;color:var(--muted);margin-right:2px;">영업구분</span>
+            <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
+              <button class="filter-btn t-btn active" data-val="New" onclick="toggleFilter('t',this)">New</button>
+              <button class="filter-btn t-btn active" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
+              <button class="filter-btn t-btn active" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
+              <button class="filter-btn t-btn active" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
+            </div>
+          </div>
+
+          <!-- 전체 초기화 -->
+          <button onclick="resetFilters()" style="font-size:11px;color:var(--muted);background:transparent;border:0.5px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">전체 초기화</button>
         </div>
       </div>
-      <div id="pipeListSummary" style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;"></div>
+
+      <div id="pipeListSummary" style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;"></div>
+
       <div style="overflow-x:auto;">
         <table class="tbl" id="pipeListTable">
           <thead><tr>
-            <th style="text-align:left;">고객사명</th>
+            <th style="text-align:center;">Stage</th>
+            <th style="text-align:center;">마감일자</th>
+            <th style="text-align:center;">고객사명</th>
             <th style="text-align:left;">프로젝트명</th>
-            <th>Stage</th>
-            <th>분기</th>
-            <th>마감일자</th>
-            <th>계약금액</th>
-            <th>예상마진</th>
+            <th style="text-align:center;">제조사</th>
+            <th style="text-align:right;">계약금액</th>
+            <th style="text-align:right;">예상마진</th>
           </tr></thead>
           <tbody id="pipeListBody"></tbody>
         </table>
@@ -613,48 +636,80 @@ function renderVendor(vendorMap) {
 
 // 파이프라인 리스트
 let pipeRawData = [];
-let currentQFilter = '전체';
-let currentStageFilter = '전체';
+let activeQ   = new Set(['Q1','Q2','Q3','Q4']);
+let activeS   = new Set(['25% (Pipeline)','50%(Best)','75%(Commit)','90%(Won)','100%(Invoice)']);
+let activeT   = new Set(['New','Renewal','Renewal(1st)','1time']);
 
 const STAGE_COLORS = {
-  '25% (Pipeline)': {bg:'rgba(79,142,247,.15)',color:'#60A5FA'},
-  '50%(Best)':      {bg:'rgba(45,212,191,.15)',color:'#2dd4bf'},
-  '75%(Commit)':    {bg:'rgba(251,191,36,.15)',color:'#fbbf24'},
-  '90%(Won)':       {bg:'rgba(52,211,153,.15)',color:'#34d399'},
+  '25% (Pipeline)': {bg:'rgba(79,142,247,.15)', color:'#60A5FA'},
+  '50%(Best)':      {bg:'rgba(45,212,191,.15)', color:'#2dd4bf'},
+  '75%(Commit)':    {bg:'rgba(251,191,36,.15)', color:'#fbbf24'},
+  '90%(Won)':       {bg:'rgba(52,211,153,.15)', color:'#34d399'},
+  '100%(Invoice)':  {bg:'rgba(90,99,128,.15)',  color:'#8898B8'},
 };
 
-function setQFilter(val, btn) {
-  currentQFilter = val;
-  document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+function toggleFilter(type, btn) {
+  const val = btn.dataset.val;
+  const map = {q: activeQ, s: activeS, t: activeT};
+  const set = map[type];
+  if (set.has(val)) {
+    if (set.size === 1) return; // 최소 1개는 유지
+    set.delete(val);
+    btn.classList.remove('active');
+  } else {
+    set.add(val);
+    btn.classList.add('active');
+  }
   renderPipeList();
 }
 
-function setStageFilter(val, btn) {
-  currentStageFilter = val;
-  document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+function resetFilters() {
+  activeQ = new Set(['Q1','Q2','Q3','Q4']);
+  activeS = new Set(['25% (Pipeline)','50%(Best)','75%(Commit)','90%(Won)','100%(Invoice)']);
+  activeT = new Set(['New','Renewal','Renewal(1st)','1time']);
+  document.querySelectorAll('.q-btn,.s-btn,.t-btn').forEach(b => b.classList.add('active'));
   renderPipeList();
+}
+
+function fmtDate(val) {
+  if (!val) return '—';
+  const s = String(val);
+  // Date 형식 처리 (Date(year,month,day) 또는 yyyy-mm-dd)
+  const m = s.match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (m) {
+    const y = m[1];
+    const mo = String(parseInt(m[2]) + 1).padStart(2,'0');
+    const d = String(m[3]).padStart(2,'0');
+    return `${y}-${mo}-${d}`;
+  }
+  // 이미 yyyy-mm-dd 형식
+  const clean = s.slice(0,10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
+  // JS Date로 파싱 시도
+  const dt = new Date(val);
+  if (!isNaN(dt)) {
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+  return s.slice(0,10);
 }
 
 function renderPipeList() {
-  let filtered = pipeRawData.filter(r => {
-    const qOk = currentQFilter === '전체' || r['회계분기'] === currentQFilter;
-    const sOk = currentStageFilter === '전체' || r['상태'] === currentStageFilter;
-    return qOk && sOk;
+  const filtered = pipeRawData.filter(r => {
+    return activeQ.has(r['회계분기']) &&
+           activeS.has(r['상태']) &&
+           activeT.has(r['영업 구분']);
   });
 
   // 요약
   const totalCnt = filtered.length;
-  const totalRev = filtered.reduce((s, r) => s + (parseFloat(r['계약 금액']) || 0), 0);
-  const totalMar = filtered.reduce((s, r) => s + (parseFloat(r['예상 마진']) || 0), 0);
+  const totalRev = filtered.reduce((s,r) => s + (parseFloat(r['계약 금액'])||0), 0);
+  const totalMar = filtered.reduce((s,r) => s + (parseFloat(r['예상 마진'])||0), 0);
   document.getElementById('pipeListSummary').innerHTML = `
     <div class="pipe-summary-item"><div class="pipe-summary-label">건수</div><div class="pipe-summary-val">${totalCnt}건</div></div>
     <div class="pipe-summary-item"><div class="pipe-summary-label">계약금액 합계</div><div class="pipe-summary-val" style="color:var(--accent)">${fmt(totalRev)}</div></div>
     <div class="pipe-summary-item"><div class="pipe-summary-label">예상마진 합계</div><div class="pipe-summary-val" style="color:var(--green)">${fmt(totalMar)}</div></div>
   `;
 
-  // 테이블
   const tbody = document.getElementById('pipeListBody');
   const empty = document.getElementById('pipeListEmpty');
 
@@ -667,25 +722,24 @@ function renderPipeList() {
 
   // 마감일자 기준 정렬
   filtered.sort((a, b) => {
-    const da = a['마감일자'] ? new Date(a['마감일자']) : new Date('9999');
-    const db = b['마감일자'] ? new Date(b['마감일자']) : new Date('9999');
+    const da = a['마감일자'] ? new Date(a['마감일자']) : new Date('9999-12-31');
+    const db = b['마감일자'] ? new Date(b['마감일자']) : new Date('9999-12-31');
     return da - db;
   });
 
   tbody.innerHTML = filtered.map(r => {
     const stage = r['상태'] || '—';
     const sc = STAGE_COLORS[stage] || {bg:'rgba(90,99,128,.15)',color:'var(--muted)'};
-    const dateStr = r['마감일자'] ? String(r['마감일자']).slice(0, 10) : '—';
     const rev = parseFloat(r['계약 금액']) || 0;
     const mar = parseFloat(r['예상 마진']) || 0;
     return `<tr>
-      <td style="font-family:'DM Sans';color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;">${r['고객사명'] || '—'}</td>
-      <td style="font-family:'DM Sans';color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r['프로젝트명'] || '—'}</td>
-      <td><span class="stage-pill" style="background:${sc.bg};color:${sc.color}">${stage}</span></td>
-      <td style="color:var(--muted)">${r['회계분기'] || '—'}</td>
-      <td style="color:var(--muted)">${dateStr}</td>
-      <td class="${rev < 0 ? 'red' : ''}">${fmt(rev)}</td>
-      <td class="${mar < 0 ? 'red' : 'grn'}">${fmt(mar)}</td>
+      <td style="text-align:center;"><span class="stage-pill" style="background:${sc.bg};color:${sc.color}">${stage}</span></td>
+      <td style="text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">${fmtDate(r['마감일자'])}</td>
+      <td style="text-align:center;color:var(--text);font-weight:500;">${r['고객사명']||'—'}</td>
+      <td style="text-align:left;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r['프로젝트명']||'—'}</td>
+      <td style="text-align:center;color:var(--muted);">${r['제조사']||'—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;" class="${rev<0?'red':''}">${fmt(rev)}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;" class="${mar<0?'red':'grn'}">${fmt(mar)}</td>
     </tr>`;
   }).join('');
 }
@@ -693,15 +747,16 @@ function renderPipeList() {
 async function loadPipeList() {
   try {
     const raw = await fetchSheet('RAW');
+    // 2026년 전체 (Lost만 제외)
     pipeRawData = raw.filter(r =>
       String(r['회계년도']) === '2026' &&
-      r['상태'] !== '100%(Invoice)' &&
       r['상태'] !== '0%(Lost)' &&
       r['상태'] != null
     );
     renderPipeList();
   } catch(e) {
-    document.getElementById('pipeListBody').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">리스트 로드 실패</td></tr>`;
+    document.getElementById('pipeListBody').innerHTML =
+      `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">리스트 로드 실패</td></tr>`;
   }
 }
 
