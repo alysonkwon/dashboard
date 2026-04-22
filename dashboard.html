@@ -232,10 +232,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
           <div style="display:flex;align-items:center;gap:4px;">
             <span style="font-size:10px;color:var(--muted);margin-right:2px;">분기</span>
             <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
-              <button class="filter-btn q-btn active" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
-              <button class="filter-btn q-btn active" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
-              <button class="filter-btn q-btn active" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
-              <button class="filter-btn q-btn active" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
+              <button class="filter-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
+              <button class="filter-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
+              <button class="filter-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
+              <button class="filter-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
             </div>
           </div>
 
@@ -243,11 +243,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
           <div style="display:flex;align-items:center;gap:4px;">
             <span style="font-size:10px;color:var(--muted);margin-right:2px;">Stage</span>
             <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
-              <button class="filter-btn s-btn active" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)" style="color:#60A5FA">25%</button>
-              <button class="filter-btn s-btn active" data-val="50%(Best)" onclick="toggleFilter('s',this)" style="color:#2dd4bf">50%</button>
-              <button class="filter-btn s-btn active" data-val="75%(Commit)" onclick="toggleFilter('s',this)" style="color:#fbbf24">75%</button>
-              <button class="filter-btn s-btn active" data-val="90%(Won)" onclick="toggleFilter('s',this)" style="color:#34d399">90%</button>
-              <button class="filter-btn s-btn active" data-val="100%(Invoice)" onclick="toggleFilter('s',this)" style="color:var(--muted)">100%</button>
+              <button class="filter-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)" style="color:#60A5FA">25%</button>
+              <button class="filter-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)" style="color:#2dd4bf">50%</button>
+              <button class="filter-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)" style="color:#fbbf24">75%</button>
+              <button class="filter-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)" style="color:#34d399">90%</button>
+              <button class="filter-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)" style="color:var(--muted)">100%</button>
             </div>
           </div>
 
@@ -255,10 +255,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
           <div style="display:flex;align-items:center;gap:4px;">
             <span style="font-size:10px;color:var(--muted);margin-right:2px;">영업구분</span>
             <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
-              <button class="filter-btn t-btn active" data-val="New" onclick="toggleFilter('t',this)">New</button>
-              <button class="filter-btn t-btn active" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
-              <button class="filter-btn t-btn active" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
-              <button class="filter-btn t-btn active" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
+              <button class="filter-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
+              <button class="filter-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
+              <button class="filter-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
+              <button class="filter-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
             </div>
           </div>
 
@@ -636,9 +636,9 @@ function renderVendor(vendorMap) {
 
 // 파이프라인 리스트
 let pipeRawData = [];
-let activeQ   = new Set(['Q1','Q2','Q3','Q4']);
-let activeS   = new Set(['25% (Pipeline)','50%(Best)','75%(Commit)','90%(Won)','100%(Invoice)']);
-let activeT   = new Set(['New','Renewal','Renewal(1st)','1time']);
+let activeQ   = new Set();
+let activeS   = new Set();
+let activeT   = new Set();
 
 const STAGE_COLORS = {
   '25% (Pipeline)': {bg:'rgba(79,142,247,.15)', color:'#60A5FA'},
@@ -653,7 +653,6 @@ function toggleFilter(type, btn) {
   const map = {q: activeQ, s: activeS, t: activeT};
   const set = map[type];
   if (set.has(val)) {
-    if (set.size === 1) return; // 최소 1개는 유지
     set.delete(val);
     btn.classList.remove('active');
   } else {
@@ -664,9 +663,9 @@ function toggleFilter(type, btn) {
 }
 
 function resetFilters() {
-  activeQ = new Set(['Q1','Q2','Q3','Q4']);
-  activeS = new Set(['25% (Pipeline)','50%(Best)','75%(Commit)','90%(Won)','100%(Invoice)']);
-  activeT = new Set(['New','Renewal','Renewal(1st)','1time']);
+  activeQ = new Set();
+  activeS = new Set();
+  activeT = new Set();
   document.querySelectorAll('.q-btn,.s-btn,.t-btn').forEach(b => b.classList.add('active'));
   renderPipeList();
 }
