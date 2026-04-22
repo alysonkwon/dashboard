@@ -381,14 +381,29 @@ const SHEET_ID = '1L6Se7nl4s4r-ErTLw0JVPtu1V21SG2qb-sGBhHWOupc';
 function gvizUrl(sheet){
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
 }
+
 async function fetchSheet(sheet){
-  const res = await fetch(gvizUrl(sheet));
-  const text = await res.text();
-  const json = JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?$/,''));
-  const cols = json.table.cols.map(c=>c.label);
-  return json.table.rows.map(r=>
-    Object.fromEntries(cols.map((c,i)=>[c, r.c[i]?r.c[i].v:null]))
-  );
+  try{
+    const res = await fetch(gvizUrl(sheet));
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if(!text || text.trim()==='') throw new Error('빈 응답');
+    const clean = text.replace(/^[^(]+\(/,'').replace(/\);?$/,'');
+    const json = JSON.parse(clean);
+    if(!json.table || !json.table.cols) return [];
+    const cols = json.table.cols.map(c=>c.label||'');
+    if(!json.table.rows) return [];
+    return json.table.rows
+      .filter(r=>r&&r.c)
+      .map(r=>Object.fromEntries(cols.map((c,i)=>[c, r.c[i]?r.c[i].v:null])));
+  }catch(e){
+    console.warn(`시트 로드 실패 [${sheet}]:`, e.message);
+    return [];
+  }
+}
+
+function hideLoading(){
+  document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
 function fmt(n){
@@ -456,6 +471,9 @@ async function loadData(){
       fetchSheet('파이프라인_집계'),
       fetchSheet('RAW'),
     ]);
+
+    // RAW 캐싱 (loadPipeList, loadIb에서 재사용)
+    cachedRaw = raw;
 
     // 타겟 시트는 별도 로드 (실패시 빈 배열)
     let targetSheet = [];
@@ -795,17 +813,16 @@ async function loadData(){
       </div>`;
     });
 
-    // 벤더
+    // 벤더 (이미 로드된 raw 재사용)
     try{
-      const raw=await fetchSheet('RAW');
       const vendorMap={};
       raw.forEach(r=>{
         const v=r['제조사'];
         if(!v||r['상태']!=='100%(Invoice)') return;
         if(!vendorMap[v]) vendorMap[v]={y25:0,y26:0};
         const yr=String(r['회계년도']);
-        if(yr==='2025') vendorMap[v].y25+=r['예상 마진']||0;
-        else if(yr==='2026') vendorMap[v].y26+=r['예상 마진']||0;
+        if(yr==='2025') vendorMap[v].y25+=parseFloat(r['예상 마진'])||0;
+        else if(yr==='2026') vendorMap[v].y26+=parseFloat(r['예상 마진'])||0;
       });
       const top10=Object.entries(vendorMap).sort((a,b)=>(b[1].y25+b[1].y26)-(a[1].y25+a[1].y26)).slice(0,10);
       const maxV=Math.max(...top10.map(([,d])=>Math.max(d.y25,d.y26)));
@@ -829,13 +846,17 @@ async function loadData(){
         const diff=d.y26-d.y25,y=pct(d.y26,d.y25);
         vtb.innerHTML+=`<tr><td class="txt">${name}</td><td>${fmt(d.y25)}</td><td class="acc">${d.y26?fmt(d.y26):'—'}</td><td class="${uc(diff)}">${sign(diff)}${fmt(diff)}</td><td class="${uc(y)}">${y!==null?sign(y)+y.toFixed(0)+'%':'—'}</td></tr>`;
       });
-    }catch(e){}
+    }catch(e){ console.warn('벤더 렌더 오류:',e); }
 
     const now=new Date();
     document.getElementById('lastUpdated').textContent=`${now.toLocaleDateString('ko-KR')} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
-    document.getElementById('loadingOverlay').classList.add('hidden');
+
   }catch(e){
-    document.getElementById('loadingOverlay').innerHTML=`<div style="text-align:center;padding:24px;color:var(--red);font-size:13px;">데이터 로드 실패<br><span style="font-size:11px;color:var(--muted);margin-top:4px;display:block;">Google Sheets 공유 설정을 확인해주세요.<br>"링크가 있는 모든 사용자 → 뷰어"로 설정되어 있어야 해요.</span></div>`;
+    console.error('loadData 오류:', e);
+    document.getElementById('loadingOverlay').innerHTML=`<div style="text-align:center;padding:24px;color:var(--red);font-size:13px;">데이터 로드 실패<br><span style="font-size:11px;color:var(--muted);margin-top:4px;display:block;">Google Sheets 공유 설정을 확인해주세요.</span></div>`;
+  }finally{
+    // 성공/실패 상관없이 로딩 항상 해제
+    hideLoading();
   }
 }
 
@@ -936,11 +957,14 @@ function renderPipeList(){
   }).join('');
 }
 
+// RAW 데이터를 전역으로 캐싱 (중복 로드 방지)
+let cachedRaw = [];
+
 async function loadPipeList(){
   try{
-    const raw=await fetchSheet('RAW');
+    // cachedRaw가 있으면 재사용, 없으면 로드
+    const raw = cachedRaw.length > 0 ? cachedRaw : await fetchSheet('RAW');
     pipeRawData=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']!=='0%(Lost)'&&r['상태']!=null);
-    // 초기엔 아무것도 선택 안된 상태
     renderPipeList();
   }catch(e){
     document.getElementById('pipeListBody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">리스트 로드 실패</td></tr>`;
@@ -948,8 +972,11 @@ async function loadPipeList(){
 }
 
 loadFX();
-loadData();
-loadPipeList();
+// loadData 완료 후 캐시된 RAW로 파이프라인/IB 로드
+loadData().then(()=>{
+  loadPipeList();
+  loadIb();
+});
 setInterval(loadFX,60000);
 
 // ── 인터빌링 ──────────────────────────────
@@ -1046,7 +1073,7 @@ function renderIbList(){
 
 async function loadIb(){
   try{
-    const raw=await fetchSheet('RAW');
+    const raw = cachedRaw.length > 0 ? cachedRaw : await fetchSheet('RAW');
 
     // IB 있는 건만 필터 (실적 + 파이프라인 모두, Lost 제외)
     ibRawData=raw.filter(r=>{
@@ -1115,7 +1142,12 @@ async function loadIb(){
   }
 }
 
-loadIb();
-</script>
+loadFX();
+// loadData 완료 후 캐시된 RAW로 파이프라인/IB 로드
+loadData().then(()=>{
+  loadPipeList();
+  loadIb();
+});
+setInterval(loadFX,60000);</script>
 </body>
 </html>
