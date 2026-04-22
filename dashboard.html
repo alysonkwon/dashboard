@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>전략사업본부 실적 대시보드</title>
+<title>영업 실적 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -128,7 +128,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <div class="container">
   <div class="header">
     <div>
-      <div class="header-title">전략사업본부 영업 실적 대시보드</div>
+      <div class="header-title">영업 실적 대시보드</div>
       <div class="header-sub">2025 · 2026 실적 & 파이프라인</div>
     </div>
     <div class="last-updated" id="lastUpdated">로딩 중...</div>
@@ -150,19 +150,49 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
   <!-- 전체 요약 -->
   <div class="panel active" id="panel-summary">
-    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <!-- 메인 실적 테이블 -->
+    <div class="card">
+      <div class="card-title">연간 실적 요약 — Revenue · GM · GM(±IB)</div>
+      <div style="overflow-x:auto;">
+        <table class="tbl" id="summaryTable">
+          <thead>
+            <tr>
+              <th style="text-align:left;min-width:100px;">구분</th>
+              <th style="text-align:right;">Revenue</th>
+              <th style="text-align:right;">GM</th>
+              <th style="text-align:right;">GM(±IB)</th>
+              <th style="text-align:right;">GM율</th>
+              <th style="text-align:right;">GM(±IB)율</th>
+              <th style="text-align:center;">비고</th>
+            </tr>
+          </thead>
+          <tbody id="summaryBody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);">
+          <div style="width:10px;height:10px;border-radius:2px;background:var(--accent);opacity:.8;"></div>확정 실적
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);">
+          <div style="width:10px;height:10px;border-radius:2px;background:var(--amber);opacity:.7;"></div>75%↑ 파이프라인 포함 (예측)
+        </div>
+      </div>
+    </div>
+
+    <!-- 차트 + 영업구분 -->
     <div class="grid2">
       <div class="card">
-        <div class="card-title">분기별 마진 (25 vs 26)</div>
-        <div style="position:relative;height:200px;"><canvas id="qChart" role="img" aria-label="분기별 마진 비교"></canvas></div>
+        <div class="card-title">분기별 GM 비교 (25 vs 26)</div>
+        <div style="position:relative;height:200px;"><canvas id="qChart" role="img" aria-label="분기별 GM 비교"></canvas></div>
         <div class="legend-row">
           <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.7)"></div>2025년 실적</div>
-          <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.8)"></div>2026년 실적</div>
-          <div class="leg"><div class="leg-dot" style="background:rgba(217,119,6,.5)"></div>2026년 파이프라인(가중)</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.8)"></div>2026년 확정</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(217,119,6,.6)"></div>2026년 75%↑ 예측</div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">영업구분별 마진 비교 (25 vs 26)</div>
+        <div class="card-title">영업구분별 GM 비교 (25 vs 26)</div>
         <div id="typeChart" class="bar-chart"></div>
       </div>
     </div>
@@ -179,10 +209,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       <table class="tbl">
         <thead><tr>
           <th style="text-align:left;">분기</th>
-          <th>25년 건수</th><th>25년 마진</th>
-          <th>26년 건수</th><th>26년 마진</th>
-          <th>파이프라인(가중)</th>
-          <th>YoY 실적</th><th>YoY 전망</th>
+          <th>25년 건수</th><th>25년 GM</th>
+          <th>26년 건수</th><th>26년 GM</th>
+          <th>YoY</th>
         </tr></thead>
         <tbody id="yoyTable"></tbody>
       </table>
@@ -416,8 +445,108 @@ async function loadFX(){
 
 async function loadData(){
   try{
-    const [actual,pipeline]=await Promise.all([fetchSheet('실적_집계'),fetchSheet('파이프라인_집계')]);
+    const [actual, pipeline, raw] = await Promise.all([
+      fetchSheet('실적_집계'),
+      fetchSheet('파이프라인_집계'),
+      fetchSheet('RAW')
+    ]);
+
     const QS=['Q1','Q2','Q3','Q4'];
+
+    // RAW 기반 집계 (IB 포함)
+    function getIbRaw(r){
+      const yr=String(r['회계년도']);
+      if(yr==='2025') return parseFloat(r['IB(-)'])||0;
+      return parseFloat(r['Interbilling'])||0;
+    }
+
+    // 25년 연간 (실적만)
+    const raw25=raw.filter(r=>String(r['회계년도'])==='2025'&&r['상태']==='100%(Invoice)');
+    const s25={
+      rev:raw25.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0),
+      gm: raw25.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0),
+      ib: raw25.reduce((s,r)=>s+getIbRaw(r),0),
+    };
+
+    // 26년 분기별 (Q1=실적, Q2~Q4=실적+75%↑파이프라인)
+    const s26={};
+    const PIPE_STAGES=['75%(Commit)','90%(Won)'];
+    QS.forEach(q=>{
+      const inv=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&r['상태']==='100%(Invoice)');
+      const pipe=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&PIPE_STAGES.includes(r['상태']));
+      const isActual=q==='Q1';
+      const src=isActual?inv:[...inv,...pipe];
+      s26[q]={
+        rev:src.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0),
+        gm: src.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0),
+        ib: src.reduce((s,r)=>s+getIbRaw(r),0),
+        isActual,
+        invCnt:inv.length,
+        pipeCnt:pipe.length,
+      };
+    });
+
+    // 전체 요약 테이블 렌더
+    const tbody=document.getElementById('summaryBody');
+    tbody.innerHTML='';
+
+    // 25년 연간
+    const gmRate25=s25.rev?s25.gm/s25.rev*100:0;
+    const ibRate25=s25.rev?(s25.gm-s25.ib)/s25.rev*100:0;
+    tbody.innerHTML+=`<tr style="background:rgba(37,99,235,.04);">
+      <td class="txt" style="font-weight:600;">2025년 연간</td>
+      <td>${fmt(s25.rev)}</td>
+      <td>${fmt(s25.gm)}</td>
+      <td style="color:var(--green);font-weight:600;">${fmt(s25.gm-s25.ib)}</td>
+      <td>${gmRate25.toFixed(1)}%</td>
+      <td style="color:var(--green);">${ibRate25.toFixed(1)}%</td>
+      <td style="text-align:center;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(37,99,235,.1);color:var(--accent);font-weight:500;">확정</span></td>
+    </tr>`;
+
+    // 구분선
+    tbody.innerHTML+=`<tr><td colspan="7" style="padding:4px 0;border-bottom:2px solid var(--border);"></td></tr>`;
+
+    // 26년 분기별
+    let tot26rev=0,tot26gm=0,tot26ib=0;
+    QS.forEach(q=>{
+      const d=s26[q];
+      tot26rev+=d.rev; tot26gm+=d.gm; tot26ib+=d.ib;
+      const gmR=d.rev?d.gm/d.rev*100:0;
+      const ibR=d.rev?(d.gm-d.ib)/d.rev*100:0;
+      const isAct=d.isActual;
+      const badge=isAct
+        ?`<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(37,99,235,.1);color:var(--accent);font-weight:500;">확정</span>`
+        :`<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(217,119,6,.1);color:var(--amber);font-weight:500;">예측 (75%↑ ${d.pipeCnt}건)</span>`;
+      const rowBg=isAct?'rgba(22,163,74,.03)':'rgba(217,119,6,.03)';
+      tbody.innerHTML+=`<tr style="background:${rowBg};">
+        <td class="txt" style="font-weight:500;padding-left:16px;">26년 ${q}</td>
+        <td>${d.rev?fmt(d.rev):'—'}</td>
+        <td>${d.gm?fmt(d.gm):'—'}</td>
+        <td style="color:var(--green);font-weight:600;">${d.gm?fmt(d.gm-d.ib):'—'}</td>
+        <td>${d.rev?gmR.toFixed(1)+'%':'—'}</td>
+        <td style="color:var(--green);">${d.rev?ibR.toFixed(1)+'%':'—'}</td>
+        <td style="text-align:center;">${badge}</td>
+      </tr>`;
+    });
+
+    // 26년 합계
+    const tot26gmR=tot26rev?tot26gm/tot26rev*100:0;
+    const tot26ibR=tot26rev?(tot26gm-tot26ib)/tot26rev*100:0;
+    const yoyGm=pct(tot26gm,s25.gm);
+    const yoyIb=pct(tot26gm-tot26ib,s25.gm-s25.ib);
+    tbody.innerHTML+=`<tr style="background:rgba(217,119,6,.05);border-top:2px solid var(--border);">
+      <td class="txt" style="font-weight:700;">26년 합계</td>
+      <td style="font-weight:700;">${fmt(tot26rev)}</td>
+      <td style="font-weight:700;">${fmt(tot26gm)}</td>
+      <td style="color:var(--green);font-weight:700;">${fmt(tot26gm-tot26ib)}</td>
+      <td style="font-weight:700;">${tot26gmR.toFixed(1)}%</td>
+      <td style="color:var(--green);font-weight:700;">${tot26ibR.toFixed(1)}%</td>
+      <td style="text-align:center;font-size:11px;">
+        <span style="color:${(yoyGm||0)>=0?'var(--green)':'var(--red)'};font-weight:600;">GM ${sign(yoyGm||0)}${(yoyGm||0).toFixed(1)}%</span>
+      </td>
+    </tr>`;
+
+    // 분기별 집계 (기존 YoY 탭용)
     const qData={};
     for(const yr of ['2025','2026']){
       qData[yr]={};
@@ -430,7 +559,6 @@ async function loadData(){
           mar:inv.reduce((s,r)=>s+(r['마진']||0),0),
           pcnt:pip.reduce((s,r)=>s+(r['건수']||0),0),
           pmar:pip.reduce((s,r)=>s+(r['예상마진']||0),0),
-          pwmar:pip.reduce((s,r)=>s+(r['가중마진']||0),0),
         };
       }
     }
@@ -451,22 +579,8 @@ async function loadData(){
       stages[s]={
         cnt:rows.reduce((s2,r)=>s2+(r['건수']||0),0),
         pmar:rows.reduce((s2,r)=>s2+(r['예상마진']||0),0),
-        wmar:rows.reduce((s2,r)=>s2+(r['가중마진']||0),0),
       };
     }
-
-    // KPI
-    const tot25=QS.reduce((s,q)=>s+qData['2025'][q].mar,0);
-    const tot26act=QS.reduce((s,q)=>s+qData['2026'][q].mar,0);
-    const tot26pipe=QS.reduce((s,q)=>s+(qData['2026'][q].pwmar||0),0);
-    const tot26fore=tot26act+tot26pipe;
-    const yoyQ1=pct(qData['2026']['Q1'].mar,qData['2025']['Q1'].mar);
-    document.getElementById('kpiGrid').innerHTML=`
-      <div class="kpi"><div class="kpi-label">25년 연간 마진</div><div class="kpi-val">${fmt(tot25)}</div><div class="kpi-sub neu">실적 확정</div></div>
-      <div class="kpi"><div class="kpi-label">26년 실적 마진 (Q1)</div><div class="kpi-val" style="color:var(--green)">${fmt(qData['2026']['Q1'].mar)}</div><div class="kpi-sub up">Q1 YoY ${sign(yoyQ1)}${(yoyQ1||0).toFixed(1)}%</div></div>
-      <div class="kpi"><div class="kpi-label">26년 파이프라인(가중)</div><div class="kpi-val" style="color:var(--accent)">${fmt(tot26pipe)}</div><div class="kpi-sub neu">Q2~Q4 기대치</div></div>
-      <div class="kpi"><div class="kpi-label">26년 연간 전망</div><div class="kpi-val" style="color:var(--amber)">${fmt(tot26fore)}</div><div class="kpi-sub ${uc(pct(tot26fore,tot25))}">vs 25년 ${sign(pct(tot26fore,tot25)||0)}${(pct(tot26fore,tot25)||0).toFixed(1)}%</div></div>
-    `;
 
     // 분기 차트
     setTimeout(()=>{
@@ -475,14 +589,14 @@ async function loadData(){
         y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:10},callback:v=>v+'억'}}
       }};
       new Chart(document.getElementById('qChart'),{type:'bar',data:{labels:QS,datasets:[
-        {label:'25년',data:QS.map(q=>+(qData['2025'][q].mar/1e8).toFixed(2)),backgroundColor:'rgba(37,99,235,.6)',borderRadius:4,borderSkipped:false},
-        {label:'26년',data:QS.map(q=>+(qData['2026'][q].mar/1e8).toFixed(2)),backgroundColor:'rgba(22,163,74,.8)',borderRadius:4,borderSkipped:false},
-        {label:'파이프라인',data:QS.map(q=>+((qData['2026'][q].pwmar||0)/1e8).toFixed(2)),backgroundColor:'rgba(217,119,6,.45)',borderRadius:4,borderSkipped:false},
+        {label:'25년 실적',data:QS.map(q=>+(qData['2025'][q].mar/1e8).toFixed(2)),backgroundColor:'rgba(37,99,235,.6)',borderRadius:4,borderSkipped:false},
+        {label:'26년 확정',data:QS.map(q=>+(qData['2026'][q].mar/1e8).toFixed(2)),backgroundColor:'rgba(22,163,74,.8)',borderRadius:4,borderSkipped:false},
+        {label:'26년 75%↑',data:QS.map(q=>+(s26[q].isActual?0:(s26[q].gm-qData['2026'][q].mar)/1e8).toFixed(2)),backgroundColor:'rgba(217,119,6,.55)',borderRadius:4,borderSkipped:false},
       ]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}억`}}}}});
 
       new Chart(document.getElementById('pipeChart'),{type:'bar',data:{labels:['Q2','Q3','Q4'],datasets:[
         {label:'예상마진',data:['Q2','Q3','Q4'].map(q=>+((qData['2026'][q].pmar||0)/1e8).toFixed(2)),backgroundColor:'rgba(37,99,235,.3)',borderRadius:4},
-        {label:'가중마진',data:['Q2','Q3','Q4'].map(q=>+((qData['2026'][q].pwmar||0)/1e8).toFixed(2)),backgroundColor:'rgba(22,163,74,.8)',borderRadius:4},
+        {label:'75%↑ GM',data:['Q2','Q3','Q4'].map(q=>+(s26[q].gm/1e8).toFixed(2)),backgroundColor:'rgba(217,119,6,.6)',borderRadius:4},
       ]},options:chartDefaults});
     },150);
 
@@ -506,8 +620,8 @@ async function loadData(){
     const yoyCards=document.getElementById('yoyCards');
     yoyCards.innerHTML='';
     QS.forEach(q=>{
-      const m25=qData['2025'][q].mar,m26=qData['2026'][q].mar,pw=qData['2026'][q].pwmar||0;
-      const y=pct(m26,m25),yi=pct(m26+pw,m25);
+      const m25=qData['2025'][q].mar,m26=qData['2026'][q].mar;
+      const y=pct(m26,m25);
       const bg=y===null?'rgba(136,144,168,.08)':y>=0?'rgba(22,163,74,.08)':'rgba(220,38,38,.08)';
       const col=y===null?'var(--muted)':y>=0?'var(--green)':'var(--red)';
       yoyCards.innerHTML+=`<div class="yoy-card">
@@ -515,29 +629,26 @@ async function loadData(){
         <div class="yoy-row"><span class="yoy-year">2025</span><span class="yoy-mar">${fmt(m25)}</span></div>
         <div class="yoy-row"><span class="yoy-year">2026 실적</span><span class="yoy-mar" style="color:var(--accent)">${m26?fmt(m26):'—'}</span></div>
         <div class="yoy-change" style="background:${bg};color:${col}">실적 YoY ${y!==null?sign(y)+y.toFixed(1)+'%':'—'}</div>
-        ${pw?`<div class="yoy-pipe">파이프라인 포함 ${sign(yi||0)}${(yi||0).toFixed(1)}%</div>`:''}
       </div>`;
     });
 
     // YoY 테이블
     const ytb=document.getElementById('yoyTable');
     ytb.innerHTML='';
-    let t25=0,t26=0,tpw=0,tc25=0,tc26=0;
+    let t25=0,t26=0,tc25=0,tc26=0;
     QS.forEach(q=>{
       const {cnt:c25,mar:m25}=qData['2025'][q];
-      const {cnt:c26,mar:m26,pwmar:pw=0}=qData['2026'][q];
-      const y=pct(m26,m25),yi=pct(m26+pw,m25);
-      t25+=m25;t26+=m26;tpw+=pw;tc25+=c25;tc26+=c26;
+      const {cnt:c26,mar:m26}=qData['2026'][q];
+      const y=pct(m26,m25);
+      t25+=m25;t26+=m26;tc25+=c25;tc26+=c26;
       ytb.innerHTML+=`<tr>
         <td class="txt">${q}</td><td>${c25}</td><td>${fmt(m25)}</td>
         <td class="acc">${c26||'—'}</td><td class="acc">${m26?fmt(m26):'—'}</td>
-        <td class="amb">${pw?fmt(pw):'—'}</td>
         <td class="${uc(y)}">${y!==null?sign(y)+y.toFixed(1)+'%':'—'}</td>
-        <td class="${uc(yi)}">${yi!==null?sign(yi)+yi.toFixed(1)+'%':'—'}</td>
       </tr>`;
     });
-    const ty=pct(t26,t25),tyi=pct(t26+tpw,t25);
-    ytb.innerHTML+=`<tr><td class="txt">합계</td><td>${tc25}</td><td>${fmt(t25)}</td><td class="acc">${tc26}</td><td class="acc">${fmt(t26)}</td><td class="amb">${fmt(tpw)}</td><td class="${uc(ty)}">${ty!==null?sign(ty)+ty.toFixed(1)+'%':'—'}</td><td class="${uc(tyi)}">${tyi!==null?sign(tyi)+tyi.toFixed(1)+'%':'—'}</td></tr>`;
+    const ty=pct(t26,t25);
+    ytb.innerHTML+=`<tr><td class="txt">합계</td><td>${tc25}</td><td>${fmt(t25)}</td><td class="acc">${tc26}</td><td class="acc">${fmt(t26)}</td><td class="${uc(ty)}">${ty!==null?sign(ty)+ty.toFixed(1)+'%':'—'}</td></tr>`;
 
     // 파이프라인 KPI
     const totPcnt=Object.values(stages).reduce((s,d)=>s+d.cnt,0);
