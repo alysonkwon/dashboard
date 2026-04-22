@@ -210,39 +210,32 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="card">
       <div style="margin-bottom:14px;">
         <div class="card-title" style="margin-bottom:12px;">2026년 파이프라인 상세 리스트</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div class="filter-group">
-            <span class="filter-label">분기</span>
-            <div class="filter-wrap">
-              <button class="f-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
-              <button class="f-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
-              <button class="f-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
-              <button class="f-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
-            </div>
-          </div>
-          <div class="filter-group">
-            <span class="filter-label">Stage</span>
-            <div class="filter-wrap">
-              <button class="f-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)" style="">25%</button>
-              <button class="f-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)">50%</button>
-              <button class="f-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)">75%</button>
-              <button class="f-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)">90%</button>
-              <button class="f-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)">100%</button>
-            </div>
-          </div>
-          <div class="filter-group">
-            <span class="filter-label">영업구분</span>
-            <div class="filter-wrap">
-              <button class="f-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
-              <button class="f-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
-              <button class="f-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
-              <button class="f-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button class="reset-btn" onclick="selectAllFilters()">전체 선택</button>
-            <button class="reset-btn" onclick="clearAllFilters()">전체 해제</button>
-          </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+  <span class="filter-label">분기</span>
+  <div class="filter-wrap">
+    <button class="f-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
+    <button class="f-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
+    <button class="f-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
+    <button class="f-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
+  </div>
+  <span class="filter-label" style="margin-left:4px;">Stage</span>
+  <div class="filter-wrap">
+    <button class="f-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)">25%</button>
+    <button class="f-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)">50%</button>
+    <button class="f-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)">75%</button>
+    <button class="f-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)">90%</button>
+    <button class="f-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)">100%</button>
+  </div>
+  <span class="filter-label" style="margin-left:4px;">영업구분</span>
+  <div class="filter-wrap">
+    <button class="f-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
+    <button class="f-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
+    <button class="f-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
+    <button class="f-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
+  </div>
+  <button class="reset-btn" onclick="selectAllFilters()">전체 선택</button>
+  <button class="reset-btn" onclick="clearAllFilters()">전체 해제</button>
+</div>
         </div>
       </div>
       <div id="pipeListSummary" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"></div>
