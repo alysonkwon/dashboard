@@ -228,7 +228,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       </div>
       <div class="card">
         <div class="card-title">분기별 파이프라인 예상마진 (2026년)</div>
-        <div style="position:relative;height:200px;"><canvas id="pipeChart" role="img" aria-label="파이프라인 분기별 현황"></canvas></div>
+        <div style="position:relative;height:240px;"><canvas id="pipeChart" role="img" aria-label="파이프라인 분기별 현황"></canvas></div>
       </div>
     </div>
 
@@ -644,13 +644,50 @@ async function loadData(){
       ]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}억`}}}}});
 
       if(document.getElementById('pipeChart')){
-        const pipeQData=['Q2','Q3','Q4'].map(q=>{
+        const pipeQs=['Q1','Q2','Q3','Q4'];
+        const pipeQData=pipeQs.map(q=>{
           const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&r['상태']!=='0%(Lost)'&&r['상태']!=='100%(Invoice)');
           return +(rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0)/1e8).toFixed(2);
         });
-        new Chart(document.getElementById('pipeChart'),{type:'bar',data:{labels:['Q2','Q3','Q4'],datasets:[
-          {label:'예상마진',data:pipeQData,backgroundColor:['rgba(37,99,235,.65)','rgba(8,145,178,.65)','rgba(217,119,6,.65)'],borderRadius:6,borderSkipped:false},
-        ]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{callbacks:{label:c=>`예상마진: ${c.parsed.y}억`}}}}});
+        new Chart(document.getElementById('pipeChart'),{type:'bar',data:{labels:pipeQs,datasets:[
+          {label:'예상마진',data:pipeQData,
+           backgroundColor:['rgba(37,99,235,.65)','rgba(8,145,178,.65)','rgba(217,119,6,.65)','rgba(22,163,74,.65)'],
+           borderRadius:6,borderSkipped:false},
+        ]},options:{...chartDefaults,
+          plugins:{...chartDefaults.plugins,
+            tooltip:{callbacks:{label:c=>`예상마진: ${c.parsed.y}억`}},
+            datalabels:{display:false}
+          },
+          layout:{padding:{top:20}},
+          scales:{
+            x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:11}}},
+            y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:10},callback:v=>v+'억'},
+               afterDataLimits(scale){scale.max=scale.max*1.15;}
+            }
+          }
+        }});
+
+        // 바 위에 레이블 직접 그리기
+        Chart.register({
+          id:'pipeLabels',
+          afterDatasetsDraw(chart){
+            const ctx=chart.ctx;
+            chart.data.datasets.forEach((ds,i)=>{
+              const meta=chart.getDatasetMeta(i);
+              meta.data.forEach((bar,j)=>{
+                const val=ds.data[j];
+                if(!val) return;
+                ctx.save();
+                ctx.fillStyle='#1a1d2e';
+                ctx.font='500 10pt Noto Sans KR, sans-serif';
+                ctx.textAlign='center';
+                ctx.textBaseline='bottom';
+                ctx.fillText(val+'억', bar.x, bar.y-4);
+                ctx.restore();
+              });
+            });
+          }
+        });
       }
     },150);
 
