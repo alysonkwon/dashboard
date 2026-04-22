@@ -3,125 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>전략사업본부 영업 실적 대시보드</title>
+<title>영업 실적 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f8f9fc;
-  --surface:#ffffff;
-  --surface2:#f1f3f8;
-  --border:#e2e6ef;
-  --text:#1a1d2e;
-  --muted:#8890a8;
-  --accent:#2563eb;
-  --green:#16a34a;
-  --red:#dc2626;
-  --amber:#d97706;
+  --bg:#f8f9fc;--surface:#ffffff;--surface2:#f1f3f8;--border:#e2e6ef;
+  --text:#1a1d2e;--muted:#8890a8;--accent:#2563eb;--accent2:#7c3aed;
+  --green:#16a34a;--red:#dc2626;--amber:#d97706;--teal:#0891b2;
 }
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;min-height:100vh;}
-.container{max-width:1200px;margin:0 auto;padding:20px;}
+.container{max-width:1280px;margin:0 auto;padding:20px;}
 
-/* 헤더 */
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
-.header-title{font-size:20px;font-weight:600;color:var(--text);}
-.header-sub{font-size:12px;color:var(--muted);margin-top:2px;}
-.last-updated{font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:99px;}
-
-/* 로딩 */
 .loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px;}
 .loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
 .loading-text{font-size:13px;color:var(--muted);}
 @keyframes spin{to{transform:rotate(360deg)}}
 .hidden{display:none!important;}
 
-/* 환율 배너 */
-.fx-banner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.header-title{font-size:20px;font-weight:700;color:var(--text);}
+.header-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.last-updated{font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:99px;}
+
+.fx-banner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
 .fx-title{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:6px;}
 .fx-pair{display:flex;align-items:center;gap:7px;padding:6px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
 .fx-name{font-size:10px;color:var(--muted);min-width:54px;}
-.fx-rate{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;}
+.fx-rate{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
 .fx-chg{font-size:11px;font-weight:500;padding:2px 7px;border-radius:99px;}
-.fx-chg.up{background:rgba(52,211,153,.12);color:var(--green);}
-.fx-chg.dn{background:rgba(248,113,113,.12);color:var(--red);}
-.fx-chg.flat{background:rgba(90,99,128,.12);color:var(--muted);}
+.fx-chg.up{background:rgba(22,163,74,.1);color:var(--green);}
+.fx-chg.dn{background:rgba(220,38,38,.1);color:var(--red);}
+.fx-chg.flat{background:rgba(136,144,168,.1);color:var(--muted);}
 .fx-src{margin-left:auto;font-size:10px;color:var(--muted);}
 
-/* 탭 */
-.tabs{display:flex;gap:3px;background:var(--surface);border-radius:10px;padding:4px;border:1px solid var(--border);margin-bottom:12px;}
-.tab{flex:1;padding:8px 0;text-align:center;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);transition:all .15s;border:none;background:transparent;}
-.tab.active{background:var(--surface2);color:var(--text);}
-.tab:hover:not(.active){color:var(--text);}
+.tabs{display:flex;gap:3px;background:var(--surface);border-radius:10px;padding:4px;border:1px solid var(--border);margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.tab{flex:1;padding:8px 0;text-align:center;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);transition:all .15s;border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;}
+.tab.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(37,99,235,.3);}
+.tab:hover:not(.active){color:var(--text);background:var(--surface2);}
 
-/* 패널 */
 .panel{display:none;}.panel.active{display:grid;gap:12px;}
 
-/* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.kpi{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 12px;}
-.kpi-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
-.kpi-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-.5px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 14px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.kpi-label{font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+.kpi-val{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:-.5px;color:var(--text);}
 .kpi-sub{font-size:11px;margin-top:4px;font-weight:500;}
 .up{color:var(--green)}.dn{color:var(--red)}.neu{color:var(--muted)}
 
-/* 카드 */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
-.card-title{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
-/* 바 차트 */
-.bar-chart{display:flex;flex-direction:column;gap:6px;}
+.bar-chart{display:flex;flex-direction:column;gap:7px;}
 .bar-row{display:flex;align-items:center;gap:8px;}
 .bar-label{font-size:11px;color:var(--muted);width:80px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bar-wrap{flex:1;height:20px;background:var(--surface2);border-radius:3px;overflow:hidden;position:relative;}
-.bar-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1);}
-.bar-val{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:500;font-family:'DM Mono',monospace;}
+.bar-wrap{flex:1;height:20px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+.bar-val{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
 
-/* stage */
-.stage-item{margin-bottom:10px;}
+.stage-item{margin-bottom:11px;}
 .stage-header{display:flex;justify-content:space-between;margin-bottom:4px;}
 .stage-track{height:7px;background:var(--surface2);border-radius:99px;overflow:hidden;}
 .stage-bar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);}
 
-/* YoY 카드 */
 .yoy-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.yoy-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;}
-.yoy-q{font-size:10px;color:var(--muted);margin-bottom:8px;font-weight:500;}
+.yoy-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.yoy-q{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;}
 .yoy-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
 .yoy-year{font-size:10px;color:var(--muted);}
-.yoy-mar{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;}
-.yoy-change{font-size:12px;font-weight:600;margin-top:8px;padding:4px 8px;border-radius:6px;text-align:center;}
-.yoy-pipe{font-size:10px;color:var(--amber);margin-top:4px;text-align:center;}
+.yoy-mar{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);}
+.yoy-change{font-size:12px;font-weight:700;margin-top:8px;padding:5px 8px;border-radius:7px;text-align:center;}
+.yoy-pipe{font-size:10px;color:var(--amber);margin-top:4px;text-align:center;font-weight:500;}
 
-/* 테이블 */
 .tbl{width:100%;border-collapse:collapse;}
-.tbl th{font-size:10px;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap;}
-.tbl th:first-child{text-align:left;}
-.tbl td{font-size:12px;padding:7px 8px;border-bottom:1px solid rgba(37,43,61,.6);font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;}
-.tbl td:first-child{font-family:'DM Sans',sans-serif;color:var(--muted);text-align:left;}
-.tbl tr:last-child td{border-bottom:none;font-weight:600;color:var(--text);}
+.tbl th{font-size:11px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);font-weight:600;white-space:nowrap;background:var(--surface2);}
+.tbl th:first-child{border-radius:6px 0 0 0;}
+.tbl th:last-child{border-radius:0 6px 0 0;}
+.tbl td{font-size:12px;padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;color:var(--text);}
+.tbl td.txt{font-family:'Noto Sans KR',sans-serif;color:var(--muted);text-align:left;}
+.tbl tr:last-child td{border-bottom:none;font-weight:700;}
+.tbl tr:hover td{background:var(--surface2);}
 .tbl .acc{color:var(--accent)}.tbl .grn{color:var(--green)}.tbl .red{color:var(--red)}.tbl .amb{color:var(--amber)}
 
-/* 벤더 */
-.vendor-item{margin-bottom:10px;}
-.vendor-name{font-size:12px;color:var(--text);margin-bottom:3px;}
+.vendor-item{margin-bottom:11px;}
+.vendor-name{font-size:12px;color:var(--text);margin-bottom:3px;font-weight:500;}
 .vendor-bars{display:flex;gap:3px;height:11px;}
 .vbar{height:100%;border-radius:2px;min-width:2px;transition:width .7s cubic-bezier(.4,0,.2,1);}
 .vendor-vals{display:flex;gap:10px;margin-top:3px;font-size:10px;font-family:'DM Mono',monospace;}
-
 .legend-row{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;}
 .leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
 .leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
 
-.error-msg{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:12px 16px;color:var(--red);font-size:13px;margin:8px 0;}
-.filter-btn{background:transparent;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
-.filter-btn.active{background:var(--surface);color:var(--text);}
-.filter-btn:hover:not(.active){color:var(--text);}
-.stage-pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500;white-space:nowrap;}
-.pipe-summary-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;}
-.pipe-summary-label{font-size:10px;color:var(--muted);margin-bottom:2px;}
-.pipe-summary-val{font-size:14px;font-weight:600;font-family:'DM Mono',monospace;}
+/* 필터 버튼 */
+.filter-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.filter-label{font-size:11px;color:var(--muted);font-weight:500;min-width:40px;}
+.filter-wrap{display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);}
+.f-btn{background:transparent;border:none;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'Noto Sans KR',sans-serif;}
+.f-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(37,99,235,.25);}
+.f-btn:hover:not(.active){background:var(--surface);color:var(--text);}
+.reset-btn{font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+.stage-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap;}
+.pipe-summary-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;}
+.pipe-summary-label{font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:500;}
+.pipe-summary-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;}
 
 @media(max-width:768px){
   .kpi-grid{grid-template-columns:repeat(2,1fr);}
@@ -132,14 +120,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 </head>
 <body>
 
-<!-- 로딩 -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
-  <div class="loading-text">Google Sheets에서 데이터 불러오는 중...</div>
+  <div class="loading-text">데이터 불러오는 중...</div>
 </div>
 
 <div class="container">
-  <!-- 헤더 -->
   <div class="header">
     <div>
       <div class="header-title">영업 실적 대시보드</div>
@@ -148,14 +134,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="last-updated" id="lastUpdated">로딩 중...</div>
   </div>
 
-  <!-- 환율 -->
   <div class="fx-banner">
     <span class="fx-title">환율</span>
     <div id="fxContent" style="display:flex;gap:6px;flex-wrap:wrap;"><span style="color:var(--muted);font-size:12px;">불러오는 중...</span></div>
     <span class="fx-src" id="fxSrc"></span>
   </div>
 
-  <!-- 탭 -->
   <div class="tabs">
     <button class="tab active" onclick="switchTab('summary')">전체 요약</button>
     <button class="tab" onclick="switchTab('yoy')">YoY 분기 비교</button>
@@ -171,9 +155,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div class="card-title">분기별 마진 (25 vs 26)</div>
         <div style="position:relative;height:200px;"><canvas id="qChart" role="img" aria-label="분기별 마진 비교"></canvas></div>
         <div class="legend-row">
-          <div class="leg"><div class="leg-dot" style="background:rgba(79,142,247,.7)"></div>2025년 실적</div>
-          <div class="leg"><div class="leg-dot" style="background:rgba(52,211,153,.8)"></div>2026년 실적</div>
-          <div class="leg"><div class="leg-dot" style="background:rgba(251,191,36,.5)"></div>2026년 파이프라인(가중)</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.7)"></div>2025년 실적</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.8)"></div>2026년 실적</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(217,119,6,.5)"></div>2026년 파이프라인(가중)</div>
         </div>
       </div>
       <div class="card">
@@ -193,7 +177,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       <div class="card-title">분기별 상세 테이블</div>
       <table class="tbl">
         <thead><tr>
-          <th>분기</th>
+          <th style="text-align:left;">분기</th>
           <th>25년 건수</th><th>25년 마진</th>
           <th>26년 건수</th><th>26년 마진</th>
           <th>파이프라인(가중)</th>
@@ -216,8 +200,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div class="card-title">26년 분기별 파이프라인</div>
         <div style="position:relative;height:180px;"><canvas id="pipeChart" role="img" aria-label="파이프라인 분기별 현황"></canvas></div>
         <div class="legend-row">
-          <div class="leg"><div class="leg-dot" style="background:rgba(79,142,247,.4)"></div>예상마진</div>
-          <div class="leg"><div class="leg-dot" style="background:rgba(52,211,153,.8)"></div>가중마진</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.4)"></div>예상마진</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.8)"></div>가중마진</div>
         </div>
       </div>
     </div>
@@ -226,49 +210,42 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="card">
       <div style="margin-bottom:14px;">
         <div class="card-title" style="margin-bottom:12px;">2026년 파이프라인 상세 리스트</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-
-          <!-- 분기 필터 (다중선택) -->
-          <div style="display:flex;align-items:center;gap:4px;">
-            <span style="font-size:10px;color:var(--muted);margin-right:2px;">분기</span>
-            <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
-              <button class="filter-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
-              <button class="filter-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
-              <button class="filter-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
-              <button class="filter-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="filter-group">
+            <span class="filter-label">분기</span>
+            <div class="filter-wrap">
+              <button class="f-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
+              <button class="f-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
+              <button class="f-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
+              <button class="f-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
             </div>
           </div>
-
-          <!-- Stage 필터 (다중선택) -->
-          <div style="display:flex;align-items:center;gap:4px;">
-            <span style="font-size:10px;color:var(--muted);margin-right:2px;">Stage</span>
-            <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
-              <button class="filter-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)" style="color:#60A5FA">25%</button>
-              <button class="filter-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)" style="color:#2dd4bf">50%</button>
-              <button class="filter-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)" style="color:#fbbf24">75%</button>
-              <button class="filter-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)" style="color:#34d399">90%</button>
-              <button class="filter-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)" style="color:var(--muted)">100%</button>
+          <div class="filter-group">
+            <span class="filter-label">Stage</span>
+            <div class="filter-wrap">
+              <button class="f-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)" style="">25%</button>
+              <button class="f-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)">50%</button>
+              <button class="f-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)">75%</button>
+              <button class="f-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)">90%</button>
+              <button class="f-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)">100%</button>
             </div>
           </div>
-
-          <!-- 영업구분 필터 (다중선택) -->
-          <div style="display:flex;align-items:center;gap:4px;">
-            <span style="font-size:10px;color:var(--muted);margin-right:2px;">영업구분</span>
-            <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
-              <button class="filter-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
-              <button class="filter-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
-              <button class="filter-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
-              <button class="filter-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
+          <div class="filter-group">
+            <span class="filter-label">영업구분</span>
+            <div class="filter-wrap">
+              <button class="f-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
+              <button class="f-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
+              <button class="f-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
+              <button class="f-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
             </div>
           </div>
-
-          <!-- 전체 초기화 -->
-          <button onclick="resetFilters()" style="font-size:11px;color:var(--muted);background:transparent;border:0.5px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">전체 초기화</button>
+          <div style="display:flex;gap:6px;">
+            <button class="reset-btn" onclick="selectAllFilters()">전체 선택</button>
+            <button class="reset-btn" onclick="clearAllFilters()">전체 해제</button>
+          </div>
         </div>
       </div>
-
-      <div id="pipeListSummary" style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;"></div>
-
+      <div id="pipeListSummary" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"></div>
       <div style="overflow-x:auto;">
         <table class="tbl" id="pipeListTable">
           <thead><tr>
@@ -283,7 +260,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
           <tbody id="pipeListBody"></tbody>
         </table>
       </div>
-      <div id="pipeListEmpty" style="text-align:center;padding:24px;color:var(--muted);font-size:13px;display:none;">해당 조건의 데이터가 없어요</div>
+      <div id="pipeListEmpty" style="text-align:center;padding:32px;color:var(--muted);font-size:13px;display:none;">필터를 선택하면 리스트가 표시돼요</div>
     </div>
   </div>
 
@@ -300,7 +277,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="card">
       <div class="card-title">Vendor YoY 상세</div>
       <table class="tbl">
-        <thead><tr><th>Vendor</th><th>25년 마진</th><th>26년 마진</th><th>증감</th><th>YoY</th></tr></thead>
+        <thead><tr>
+          <th style="text-align:left;">Vendor</th>
+          <th>25년 마진</th><th>26년 마진</th><th>증감</th><th>YoY</th>
+        </tr></thead>
         <tbody id="vendorTable"></tbody>
       </table>
     </div>
@@ -310,236 +290,207 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 const SHEET_ID = '1L6Se7nl4s4r-ErTLw0JVPtu1V21SG2qb-sGBhHWOupc';
 
-function gvizUrl(sheet) {
+function gvizUrl(sheet){
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
 }
-
-async function fetchSheet(sheet) {
+async function fetchSheet(sheet){
   const res = await fetch(gvizUrl(sheet));
   const text = await res.text();
-  const json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?$/, ''));
-  const cols = json.table.cols.map(c => c.label);
-  const rows = json.table.rows.map(r =>
-    Object.fromEntries(cols.map((c, i) => [c, r.c[i] ? r.c[i].v : null]))
+  const json = JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?$/,''));
+  const cols = json.table.cols.map(c=>c.label);
+  return json.table.rows.map(r=>
+    Object.fromEntries(cols.map((c,i)=>[c, r.c[i]?r.c[i].v:null]))
   );
-  return rows;
 }
 
-function fmt(n) {
-  if (n === null || n === undefined || isNaN(n)) return '—';
-  const a = Math.abs(n);
-  if (a >= 1e8) return (n / 1e8).toFixed(2) + '억';
-  if (a >= 1e4) return Math.round(n / 1e4) + '만';
+function fmt(n){
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  const a=Math.abs(n);
+  if(a>=1e8) return (n/1e8).toFixed(2)+'억';
+  if(a>=1e4) return Math.round(n/1e4)+'만';
   return Math.round(n).toLocaleString();
 }
-function sign(v) { return v > 0 ? '+' : ''; }
-function pct(a, b) { return b && b !== 0 ? ((a - b) / Math.abs(b) * 100) : null; }
-function uc(v) { return !v || v === 0 ? 'neu' : v > 0 ? 'up' : 'dn'; }
+function sign(v){return v>0?'+':'';}
+function pct(a,b){return b&&b!==0?((a-b)/Math.abs(b)*100):null;}
+function uc(v){return !v||v===0?'neu':v>0?'up':'dn';}
 
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t, i) => {
-    const ns = ['summary', 'yoy', 'pipeline', 'vendor'];
-    t.classList.toggle('active', ns[i] === name);
+function fmtDate(val){
+  if(!val) return '—';
+  // gviz Date(year,month,day) 형식
+  if(typeof val==='string'){
+    const m=val.match(/Date\((\d+),(\d+),(\d+)\)/);
+    if(m) return `${m[1]}-${String(+m[2]+1).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+    if(/^\d{4}-\d{2}-\d{2}/.test(val)) return val.slice(0,10);
+  }
+  // number (serial date) or Date object
+  const d=new Date(val);
+  if(!isNaN(d)) return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return String(val).slice(0,10);
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['summary','yoy','pipeline','vendor'][i]===name);
   });
-  document.querySelectorAll('.panel').forEach(p => {
-    p.classList.toggle('active', p.id === 'panel-' + name);
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.classList.toggle('active',p.id==='panel-'+name);
   });
 }
 
 // 환율
-async function loadFX() {
-  const prev = { USD: 1376.5, EUR: 1486.2, JPY: 9.02 };
-  try {
-    const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-    const d = await r.json();
-    const curr = {
-      USD: d.rates.KRW,
-      EUR: d.rates.KRW / d.rates.EUR,
-      JPY: (d.rates.KRW / d.rates.JPY) * 100
-    };
-    const labels = { USD: 'USD/KRW', EUR: 'EUR/KRW', JPY: 'JPY/KRW(100엔)' };
-    let html = '';
-    for (const [k, cv] of Object.entries(curr)) {
-      const chg = (cv - prev[k]) / prev[k] * 100;
-      const disp = k === 'JPY' ? cv.toFixed(1) : Math.round(cv).toLocaleString();
-      const cls = chg > 0.3 ? 'up' : chg < -0.3 ? 'dn' : 'flat';
-      html += `<div class="fx-pair"><span class="fx-name">${labels[k]}</span><span class="fx-rate">${disp}</span><span class="fx-chg ${cls}">전년 동월 ${sign(chg)}${chg.toFixed(1)}%</span></div>`;
+async function loadFX(){
+  const prev={USD:1376.5,EUR:1486.2,JPY:9.02};
+  try{
+    const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d=await r.json();
+    const curr={USD:d.rates.KRW,EUR:d.rates.KRW/d.rates.EUR,JPY:(d.rates.KRW/d.rates.JPY)*100};
+    const labels={USD:'USD/KRW',EUR:'EUR/KRW',JPY:'JPY/KRW(100엔)'};
+    let html='';
+    for(const [k,cv] of Object.entries(curr)){
+      const chg=(cv-prev[k])/prev[k]*100;
+      const disp=k==='JPY'?cv.toFixed(1):Math.round(cv).toLocaleString();
+      const cls=chg>0.3?'up':chg<-0.3?'dn':'flat';
+      html+=`<div class="fx-pair"><span class="fx-name">${labels[k]}</span><span class="fx-rate">${disp}</span><span class="fx-chg ${cls}">전년 동월 ${sign(chg)}${chg.toFixed(1)}%</span></div>`;
     }
-    document.getElementById('fxContent').innerHTML = html;
-    const now = new Date();
-    document.getElementById('fxSrc').textContent = `전년비교: 한국은행 ECOS 2025년 4월 평균 · ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')} 갱신`;
-  } catch (e) {
-    document.getElementById('fxContent').innerHTML = '<span style="color:var(--muted);font-size:12px;">환율 로드 실패</span>';
+    document.getElementById('fxContent').innerHTML=html;
+    const now=new Date();
+    document.getElementById('fxSrc').textContent=`한국은행 ECOS 2025.04 기준 · ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 갱신`;
+  }catch(e){
+    document.getElementById('fxContent').innerHTML='<span style="color:var(--muted);font-size:12px;">환율 로드 실패</span>';
   }
 }
 
-// 메인 데이터 로드 및 렌더링
-async function loadData() {
-  try {
-    const [actual, pipeline] = await Promise.all([
-      fetchSheet('실적_집계'),
-      fetchSheet('파이프라인_집계')
-    ]);
-
-    // ── 집계 ──────────────────────────────
-    const QS = ['Q1', 'Q2', 'Q3', 'Q4'];
-    const qData = {};
-    for (const yr of ['2025', '2026']) {
-      qData[yr] = {};
-      for (const q of QS) {
-        const rows = actual.filter(r => String(r['회계년도']) === yr && r['회계분기'] === q);
-        qData[yr][q] = {
-          cnt: rows.reduce((s, r) => s + (r['건수'] || 0), 0),
-          rev: rows.reduce((s, r) => s + (r['계약금액'] || 0), 0),
-          mar: rows.reduce((s, r) => s + (r['마진'] || 0), 0),
+async function loadData(){
+  try{
+    const [actual,pipeline]=await Promise.all([fetchSheet('실적_집계'),fetchSheet('파이프라인_집계')]);
+    const QS=['Q1','Q2','Q3','Q4'];
+    const qData={};
+    for(const yr of ['2025','2026']){
+      qData[yr]={};
+      for(const q of QS){
+        const inv=actual.filter(r=>String(r['회계년도'])===yr&&r['회계분기']===q);
+        const pip=pipeline.filter(r=>String(r['회계년도'])===yr&&r['회계분기']===q);
+        qData[yr][q]={
+          cnt:inv.reduce((s,r)=>s+(r['건수']||0),0),
+          rev:inv.reduce((s,r)=>s+(r['계약금액']||0),0),
+          mar:inv.reduce((s,r)=>s+(r['마진']||0),0),
+          pcnt:pip.reduce((s,r)=>s+(r['건수']||0),0),
+          pmar:pip.reduce((s,r)=>s+(r['예상마진']||0),0),
+          pwmar:pip.reduce((s,r)=>s+(r['가중마진']||0),0),
         };
-        const pRows = pipeline.filter(r => String(r['회계년도']) === yr && r['회계분기'] === q);
-        qData[yr][q].pcnt = pRows.reduce((s, r) => s + (r['건수'] || 0), 0);
-        qData[yr][q].pmar = pRows.reduce((s, r) => s + (r['예상마진'] || 0), 0);
-        qData[yr][q].pwmar = pRows.reduce((s, r) => s + (r['가중마진'] || 0), 0);
       }
     }
 
-    // 영업구분별
-    const types = {};
-    for (const t of ['New', 'Renewal', 'Renewal(1st)', '1time']) {
-      types[t] = { mar25: 0, mar26: 0 };
-      for (const yr of ['2025', '2026']) {
-        const rows = actual.filter(r => String(r['회계년도']) === yr && r['영업구분'] === t);
-        types[t][`mar${yr.slice(2)}`] = rows.reduce((s, r) => s + (r['마진'] || 0), 0);
+    const types={};
+    for(const t of ['New','Renewal','Renewal(1st)','1time']){
+      types[t]={mar25:0,mar26:0};
+      for(const yr of ['2025','2026']){
+        const rows=actual.filter(r=>String(r['회계년도'])===yr&&r['영업구분']===t);
+        types[t][`mar${yr.slice(2)}`]=rows.reduce((s,r)=>s+(r['마진']||0),0);
       }
     }
 
-    // 벤더별 (RAW 대신 실적_집계에 제조사 없으면 원본 데이터 활용 불가 → 집계에서 가능한 것만)
-    // 파이프라인 Stage별
-    const stages = {};
-    const stageNames = ['25% (Pipeline)', '50%(Best)', '75%(Commit)', '90%(Won)'];
-    for (const s of stageNames) {
-      const rows = pipeline.filter(r => r['상태'] === s);
-      stages[s] = {
-        cnt: rows.reduce((s2, r) => s2 + (r['건수'] || 0), 0),
-        pmar: rows.reduce((s2, r) => s2 + (r['예상마진'] || 0), 0),
-        wmar: rows.reduce((s2, r) => s2 + (r['가중마진'] || 0), 0),
+    const stages={};
+    const stageNames=['25% (Pipeline)','50%(Best)','75%(Commit)','90%(Won)'];
+    for(const s of stageNames){
+      const rows=pipeline.filter(r=>r['상태']===s);
+      stages[s]={
+        cnt:rows.reduce((s2,r)=>s2+(r['건수']||0),0),
+        pmar:rows.reduce((s2,r)=>s2+(r['예상마진']||0),0),
+        wmar:rows.reduce((s2,r)=>s2+(r['가중마진']||0),0),
       };
     }
 
-    // ── KPI 렌더 ──────────────────────────
-    const tot25 = QS.reduce((s, q) => s + qData['2025'][q].mar, 0);
-    const tot26act = QS.reduce((s, q) => s + qData['2026'][q].mar, 0);
-    const tot26pipe = QS.reduce((s, q) => s + (qData['2026'][q].pwmar || 0), 0);
-    const tot26fore = tot26act + tot26pipe;
-    const yoyQ1 = pct(qData['2026']['Q1'].mar, qData['2025']['Q1'].mar);
-
-    document.getElementById('kpiGrid').innerHTML = `
-      <div class="kpi"><div class="kpi-label">25년 연간 마진</div><div class="kpi-val" style="color:var(--text)">${fmt(tot25)}</div><div class="kpi-sub neu">실적 확정</div></div>
-      <div class="kpi"><div class="kpi-label">26년 실적 마진 (Q1)</div><div class="kpi-val" style="color:var(--green)">${fmt(qData['2026']['Q1'].mar)}</div><div class="kpi-sub up">Q1 YoY ${sign(yoyQ1)}${(yoyQ1 || 0).toFixed(1)}%</div></div>
+    // KPI
+    const tot25=QS.reduce((s,q)=>s+qData['2025'][q].mar,0);
+    const tot26act=QS.reduce((s,q)=>s+qData['2026'][q].mar,0);
+    const tot26pipe=QS.reduce((s,q)=>s+(qData['2026'][q].pwmar||0),0);
+    const tot26fore=tot26act+tot26pipe;
+    const yoyQ1=pct(qData['2026']['Q1'].mar,qData['2025']['Q1'].mar);
+    document.getElementById('kpiGrid').innerHTML=`
+      <div class="kpi"><div class="kpi-label">25년 연간 마진</div><div class="kpi-val">${fmt(tot25)}</div><div class="kpi-sub neu">실적 확정</div></div>
+      <div class="kpi"><div class="kpi-label">26년 실적 마진 (Q1)</div><div class="kpi-val" style="color:var(--green)">${fmt(qData['2026']['Q1'].mar)}</div><div class="kpi-sub up">Q1 YoY ${sign(yoyQ1)}${(yoyQ1||0).toFixed(1)}%</div></div>
       <div class="kpi"><div class="kpi-label">26년 파이프라인(가중)</div><div class="kpi-val" style="color:var(--accent)">${fmt(tot26pipe)}</div><div class="kpi-sub neu">Q2~Q4 기대치</div></div>
-      <div class="kpi"><div class="kpi-label">26년 연간 전망</div><div class="kpi-val" style="color:var(--amber)">${fmt(tot26fore)}</div><div class="kpi-sub ${uc(pct(tot26fore, tot25))}">vs 25년 ${sign(pct(tot26fore, tot25) || 0)}${(pct(tot26fore, tot25) || 0).toFixed(1)}%</div></div>
+      <div class="kpi"><div class="kpi-label">26년 연간 전망</div><div class="kpi-val" style="color:var(--amber)">${fmt(tot26fore)}</div><div class="kpi-sub ${uc(pct(tot26fore,tot25))}">vs 25년 ${sign(pct(tot26fore,tot25)||0)}${(pct(tot26fore,tot25)||0).toFixed(1)}%</div></div>
     `;
 
-    // ── 분기 차트 ──────────────────────────
-    setTimeout(() => {
-      new Chart(document.getElementById('qChart'), {
-        type: 'bar',
-        data: {
-          labels: QS,
-          datasets: [
-            { label: '25년 실적', data: QS.map(q => +(qData['2025'][q].mar / 1e8).toFixed(2)), backgroundColor: 'rgba(79,142,247,.65)', borderRadius: 4, borderSkipped: false },
-            { label: '26년 실적', data: QS.map(q => +(qData['2026'][q].mar / 1e8).toFixed(2)), backgroundColor: 'rgba(52,211,153,.8)', borderRadius: 4, borderSkipped: false },
-            { label: '26년 파이프라인', data: QS.map(q => +((qData['2026'][q].pwmar || 0) / 1e8).toFixed(2)), backgroundColor: 'rgba(251,191,36,.45)', borderRadius: 4, borderSkipped: false },
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}억` } } },
-          scales: {
-            x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#5a6380', font: { size: 11 } } },
-            y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#5a6380', font: { size: 10 }, callback: v => v + '억' } }
-          }
-        }
-      });
+    // 분기 차트
+    setTimeout(()=>{
+      const chartDefaults={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:11}}},
+        y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:10},callback:v=>v+'억'}}
+      }};
+      new Chart(document.getElementById('qChart'),{type:'bar',data:{labels:QS,datasets:[
+        {label:'25년',data:QS.map(q=>+(qData['2025'][q].mar/1e8).toFixed(2)),backgroundColor:'rgba(37,99,235,.6)',borderRadius:4,borderSkipped:false},
+        {label:'26년',data:QS.map(q=>+(qData['2026'][q].mar/1e8).toFixed(2)),backgroundColor:'rgba(22,163,74,.8)',borderRadius:4,borderSkipped:false},
+        {label:'파이프라인',data:QS.map(q=>+((qData['2026'][q].pwmar||0)/1e8).toFixed(2)),backgroundColor:'rgba(217,119,6,.45)',borderRadius:4,borderSkipped:false},
+      ]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}억`}}}}});
 
-      // 파이프라인 흐름 차트
-      const pipeQs = ['Q2', 'Q3', 'Q4'];
-      new Chart(document.getElementById('pipeChart'), {
-        type: 'bar',
-        data: {
-          labels: pipeQs,
-          datasets: [
-            { label: '예상마진', data: pipeQs.map(q => +((qData['2026'][q].pmar || 0) / 1e8).toFixed(2)), backgroundColor: 'rgba(79,142,247,.35)', borderRadius: 4 },
-            { label: '가중마진', data: pipeQs.map(q => +((qData['2026'][q].pwmar || 0) / 1e8).toFixed(2)), backgroundColor: 'rgba(52,211,153,.8)', borderRadius: 4 },
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#5a6380' } },
-            y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#5a6380', callback: v => v + '억' } }
-          }
-        }
-      });
-    }, 150);
+      new Chart(document.getElementById('pipeChart'),{type:'bar',data:{labels:['Q2','Q3','Q4'],datasets:[
+        {label:'예상마진',data:['Q2','Q3','Q4'].map(q=>+((qData['2026'][q].pmar||0)/1e8).toFixed(2)),backgroundColor:'rgba(37,99,235,.3)',borderRadius:4},
+        {label:'가중마진',data:['Q2','Q3','Q4'].map(q=>+((qData['2026'][q].pwmar||0)/1e8).toFixed(2)),backgroundColor:'rgba(22,163,74,.8)',borderRadius:4},
+      ]},options:chartDefaults});
+    },150);
 
-    // ── 영업구분 바 ──────────────────────────
-    const tDiv = document.getElementById('typeChart');
-    const tcols = { 'New': ['var(--accent)', 'rgba(79,142,247,.3)'], 'Renewal': ['var(--green)', 'rgba(52,211,153,.3)'], 'Renewal(1st)': ['var(--amber)', 'rgba(251,191,36,.3)'], '1time': ['var(--red)', 'rgba(248,113,113,.3)'] };
-    const maxT = Math.max(...Object.values(types).map(d => Math.max(d.mar25, d.mar26)));
-    tDiv.innerHTML = '';
-    Object.entries(types).forEach(([name, d]) => {
-      const [c25, c26] = tcols[name] || ['var(--muted)', 'rgba(255,255,255,.1)'];
-      const yoy = pct(d.mar26, d.mar25);
-      const yoyStr = yoy !== null ? `<span style="color:${yoy >= 0 ? 'var(--green)' : 'var(--red)'};font-size:10px;margin-left:6px">${sign(yoy)}${yoy.toFixed(1)}%</span>` : '';
-      tDiv.innerHTML += `<div style="margin-bottom:9px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;">${name}</span>${yoyStr}</div>
-        <div class="bar-row"><span class="bar-label" style="width:28px;font-size:10px">25년</span><div class="bar-wrap"><div class="bar-fill" style="width:${maxT ? (d.mar25 / maxT * 100).toFixed(1) : 0}%;background:${c25}"></div><span class="bar-val">${fmt(d.mar25)}</span></div></div>
-        <div class="bar-row" style="margin-top:2px;"><span class="bar-label" style="width:28px;font-size:10px">26년</span><div class="bar-wrap"><div class="bar-fill" style="width:${maxT ? (d.mar26 / maxT * 100).toFixed(1) : 0}%;background:${c26}"></div><span class="bar-val">${fmt(d.mar26)}</span></div></div>
+    // 영업구분 바
+    const tDiv=document.getElementById('typeChart');
+    const tcols={'New':['var(--accent)','rgba(37,99,235,.25)'],'Renewal':['var(--green)','rgba(22,163,74,.25)'],'Renewal(1st)':['var(--amber)','rgba(217,119,6,.25)'],'1time':['var(--red)','rgba(220,38,38,.25)']};
+    const maxT=Math.max(...Object.values(types).map(d=>Math.max(d.mar25,d.mar26)));
+    tDiv.innerHTML='';
+    Object.entries(types).forEach(([name,d])=>{
+      const [c25,c26]=tcols[name]||['var(--muted)','rgba(0,0,0,.1)'];
+      const y=pct(d.mar26,d.mar25);
+      const yStr=y!==null?`<span style="color:${y>=0?'var(--green)':'var(--red)'};font-size:10px;margin-left:6px;font-weight:600">${sign(y)}${y.toFixed(1)}%</span>`:'';
+      tDiv.innerHTML+=`<div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;font-weight:500">${name}</span>${yStr}</div>
+        <div class="bar-row"><span class="bar-label" style="width:28px;font-size:10px">25년</span><div class="bar-wrap"><div class="bar-fill" style="width:${maxT?(d.mar25/maxT*100).toFixed(1):0}%;background:${c25}"></div><span class="bar-val">${fmt(d.mar25)}</span></div></div>
+        <div class="bar-row" style="margin-top:2px;"><span class="bar-label" style="width:28px;font-size:10px">26년</span><div class="bar-wrap"><div class="bar-fill" style="width:${maxT?(d.mar26/maxT*100).toFixed(1):0}%;background:${c26}"></div><span class="bar-val">${fmt(d.mar26)}</span></div></div>
       </div>`;
     });
 
-    // ── YoY 카드 ──────────────────────────
-    const yoyCards = document.getElementById('yoyCards');
-    yoyCards.innerHTML = '';
-    QS.forEach(q => {
-      const m25 = qData['2025'][q].mar, m26 = qData['2026'][q].mar, pw = qData['2026'][q].pwmar || 0;
-      const y = pct(m26, m25), yi = pct(m26 + pw, m25);
-      const bg = y === null ? 'rgba(90,99,128,.1)' : y >= 0 ? 'rgba(52,211,153,.1)' : 'rgba(248,113,113,.1)';
-      const col = y === null ? 'var(--muted)' : y >= 0 ? 'var(--green)' : 'var(--red)';
-      yoyCards.innerHTML += `<div class="yoy-card">
+    // YoY 카드
+    const yoyCards=document.getElementById('yoyCards');
+    yoyCards.innerHTML='';
+    QS.forEach(q=>{
+      const m25=qData['2025'][q].mar,m26=qData['2026'][q].mar,pw=qData['2026'][q].pwmar||0;
+      const y=pct(m26,m25),yi=pct(m26+pw,m25);
+      const bg=y===null?'rgba(136,144,168,.08)':y>=0?'rgba(22,163,74,.08)':'rgba(220,38,38,.08)';
+      const col=y===null?'var(--muted)':y>=0?'var(--green)':'var(--red)';
+      yoyCards.innerHTML+=`<div class="yoy-card">
         <div class="yoy-q">${q}</div>
         <div class="yoy-row"><span class="yoy-year">2025</span><span class="yoy-mar">${fmt(m25)}</span></div>
-        <div class="yoy-row"><span class="yoy-year">2026 실적</span><span class="yoy-mar" style="color:var(--accent)">${m26 ? fmt(m26) : '—'}</span></div>
-        <div class="yoy-change" style="background:${bg};color:${col}">실적 YoY ${y !== null ? sign(y) + y.toFixed(1) + '%' : '—'}</div>
-        ${pw ? `<div class="yoy-pipe">파이프라인 포함 ${sign(yi || 0)}${(yi || 0).toFixed(1)}%</div>` : ''}
+        <div class="yoy-row"><span class="yoy-year">2026 실적</span><span class="yoy-mar" style="color:var(--accent)">${m26?fmt(m26):'—'}</span></div>
+        <div class="yoy-change" style="background:${bg};color:${col}">실적 YoY ${y!==null?sign(y)+y.toFixed(1)+'%':'—'}</div>
+        ${pw?`<div class="yoy-pipe">파이프라인 포함 ${sign(yi||0)}${(yi||0).toFixed(1)}%</div>`:''}
       </div>`;
     });
 
     // YoY 테이블
-    const ytb = document.getElementById('yoyTable');
-    ytb.innerHTML = '';
-    let t25 = 0, t26 = 0, tpw = 0, tc25 = 0, tc26 = 0;
-    QS.forEach(q => {
-      const { cnt: c25, mar: m25 } = qData['2025'][q];
-      const { cnt: c26, mar: m26, pwmar: pw = 0 } = qData['2026'][q];
-      const y = pct(m26, m25), yi = pct(m26 + pw, m25);
-      t25 += m25; t26 += m26; tpw += pw; tc25 += c25; tc26 += c26;
-      ytb.innerHTML += `<tr>
-        <td>${q}</td><td>${c25}</td><td>${fmt(m25)}</td>
-        <td class="acc">${c26 || '—'}</td><td class="acc">${m26 ? fmt(m26) : '—'}</td>
-        <td class="amb">${pw ? fmt(pw) : '—'}</td>
-        <td class="${uc(y)}">${y !== null ? sign(y) + y.toFixed(1) + '%' : '—'}</td>
-        <td class="${uc(yi)}">${yi !== null ? sign(yi) + yi.toFixed(1) + '%' : '—'}</td>
+    const ytb=document.getElementById('yoyTable');
+    ytb.innerHTML='';
+    let t25=0,t26=0,tpw=0,tc25=0,tc26=0;
+    QS.forEach(q=>{
+      const {cnt:c25,mar:m25}=qData['2025'][q];
+      const {cnt:c26,mar:m26,pwmar:pw=0}=qData['2026'][q];
+      const y=pct(m26,m25),yi=pct(m26+pw,m25);
+      t25+=m25;t26+=m26;tpw+=pw;tc25+=c25;tc26+=c26;
+      ytb.innerHTML+=`<tr>
+        <td class="txt">${q}</td><td>${c25}</td><td>${fmt(m25)}</td>
+        <td class="acc">${c26||'—'}</td><td class="acc">${m26?fmt(m26):'—'}</td>
+        <td class="amb">${pw?fmt(pw):'—'}</td>
+        <td class="${uc(y)}">${y!==null?sign(y)+y.toFixed(1)+'%':'—'}</td>
+        <td class="${uc(yi)}">${yi!==null?sign(yi)+yi.toFixed(1)+'%':'—'}</td>
       </tr>`;
     });
-    const ty = pct(t26, t25), tyi = pct(t26 + tpw, t25);
-    ytb.innerHTML += `<tr><td>합계</td><td>${tc25}</td><td>${fmt(t25)}</td><td class="acc">${tc26}</td><td class="acc">${fmt(t26)}</td><td class="amb">${fmt(tpw)}</td><td class="${uc(ty)}">${ty !== null ? sign(ty) + ty.toFixed(1) + '%' : '—'}</td><td class="${uc(tyi)}">${tyi !== null ? sign(tyi) + tyi.toFixed(1) + '%' : '—'}</td></tr>`;
+    const ty=pct(t26,t25),tyi=pct(t26+tpw,t25);
+    ytb.innerHTML+=`<tr><td class="txt">합계</td><td>${tc25}</td><td>${fmt(t25)}</td><td class="acc">${tc26}</td><td class="acc">${fmt(t26)}</td><td class="amb">${fmt(tpw)}</td><td class="${uc(ty)}">${ty!==null?sign(ty)+ty.toFixed(1)+'%':'—'}</td><td class="${uc(tyi)}">${tyi!==null?sign(tyi)+tyi.toFixed(1)+'%':'—'}</td></tr>`;
 
-    // ── 파이프라인 KPI ──────────────────────
-    const totPcnt = Object.values(stages).reduce((s, d) => s + d.cnt, 0);
-    const totPmar = Object.values(stages).reduce((s, d) => s + d.pmar, 0);
-    const totWmar = Object.values(stages).reduce((s, d) => s + d.wmar, 0);
-    const wonCnt = stages['90%(Won)']?.cnt || 0;
-    document.getElementById('pipeKpi').innerHTML = `
+    // 파이프라인 KPI
+    const totPcnt=Object.values(stages).reduce((s,d)=>s+d.cnt,0);
+    const totPmar=Object.values(stages).reduce((s,d)=>s+d.pmar,0);
+    const totWmar=Object.values(stages).reduce((s,d)=>s+d.wmar,0);
+    const wonCnt=stages['90%(Won)']?.cnt||0;
+    document.getElementById('pipeKpi').innerHTML=`
       <div class="kpi"><div class="kpi-label">전체 파이프라인</div><div class="kpi-val" style="color:var(--accent)">${totPcnt}건</div><div class="kpi-sub neu">Lost 제외</div></div>
       <div class="kpi"><div class="kpi-label">예상마진 합계</div><div class="kpi-val">${fmt(totPmar)}</div><div class="kpi-sub neu">확률 미반영</div></div>
       <div class="kpi"><div class="kpi-label">가중마진 합계</div><div class="kpi-val" style="color:var(--green)">${fmt(totWmar)}</div><div class="kpi-sub up">Stage 확률 반영</div></div>
@@ -547,223 +498,178 @@ async function loadData() {
     `;
 
     // Stage 차트
-    const sCols = { '25% (Pipeline)': '#4f8ef7', '50%(Best)': '#2dd4bf', '75%(Commit)': '#fbbf24', '90%(Won)': '#34d399' };
-    const sDiv = document.getElementById('stageChart');
-    sDiv.innerHTML = '';
-    const maxS = Math.max(...Object.values(stages).map(d => d.pmar || 0));
-    stageNames.forEach(name => {
-      const d = stages[name] || { cnt: 0, pmar: 0, wmar: 0 };
-      const c = sCols[name];
-      sDiv.innerHTML += `<div class="stage-item">
+    const sCols={'25% (Pipeline)':'#2563eb','50%(Best)':'#0891b2','75%(Commit)':'#d97706','90%(Won)':'#16a34a'};
+    const sDiv=document.getElementById('stageChart');
+    sDiv.innerHTML='';
+    const maxS=Math.max(...Object.values(stages).map(d=>d.pmar||0));
+    stageNames.forEach(name=>{
+      const d=stages[name]||{cnt:0,pmar:0,wmar:0};
+      const c=sCols[name];
+      sDiv.innerHTML+=`<div class="stage-item">
         <div class="stage-header">
-          <span style="font-size:12px;color:var(--text)">${name} <span style="color:var(--muted);font-size:10px">${d.cnt}건</span></span>
-          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono'">예상 ${fmt(d.pmar)} → 가중 <span style="color:${c}">${fmt(d.wmar)}</span></span>
+          <span style="font-size:12px;font-weight:500">${name} <span style="color:var(--muted);font-size:10px;font-weight:400">${d.cnt}건</span></span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono'">예상 ${fmt(d.pmar)} → 가중 <span style="color:${c};font-weight:600">${fmt(d.wmar)}</span></span>
         </div>
-        <div class="stage-track"><div class="stage-bar-fill" style="width:${maxS ? (d.pmar / maxS * 100).toFixed(1) : 0}%;background:${c}"></div></div>
+        <div class="stage-track"><div class="stage-bar-fill" style="width:${maxS?(d.pmar/maxS*100).toFixed(1):0}%;background:${c}"></div></div>
       </div>`;
     });
 
-    // ── 벤더 (실적_집계에 제조사 컬럼 있으면 집계, 없으면 안내) ──
-    const hasVendor = actual.length > 0 && actual[0].hasOwnProperty('제조사');
-    if (hasVendor) {
-      const vendorMap = {};
-      actual.forEach(r => {
-        const v = r['제조사'];
-        if (!v) return;
-        if (!vendorMap[v]) vendorMap[v] = { y25: 0, y26: 0 };
-        const yr = String(r['회계년도']);
-        if (yr === '2025') vendorMap[v].y25 += r['마진'] || 0;
-        else if (yr === '2026') vendorMap[v].y26 += r['마진'] || 0;
+    // 벤더
+    try{
+      const raw=await fetchSheet('RAW');
+      const vendorMap={};
+      raw.forEach(r=>{
+        const v=r['제조사'];
+        if(!v||r['상태']!=='100%(Invoice)') return;
+        if(!vendorMap[v]) vendorMap[v]={y25:0,y26:0};
+        const yr=String(r['회계년도']);
+        if(yr==='2025') vendorMap[v].y25+=r['예상 마진']||0;
+        else if(yr==='2026') vendorMap[v].y26+=r['예상 마진']||0;
       });
-      renderVendor(vendorMap);
-    } else {
-      // 실적_집계에 제조사 없으면 RAW에서 직접 가져오기
-      try {
-        const raw = await fetchSheet('RAW');
-        const vendorMap = {};
-        raw.forEach(r => {
-          const v = r['제조사'];
-          if (!v || r['상태'] !== '100%(Invoice)') return;
-          if (!vendorMap[v]) vendorMap[v] = { y25: 0, y26: 0 };
-          const yr = String(r['회계년도']);
-          if (yr === '2025') vendorMap[v].y25 += r['예상 마진'] || 0;
-          else if (yr === '2026') vendorMap[v].y26 += r['예상 마진'] || 0;
-        });
-        renderVendor(vendorMap);
-      } catch (e) {
-        document.getElementById('vendorChart').innerHTML = '<div style="color:var(--muted);font-size:12px;padding:12px 0;">벤더 데이터 로드 중 오류가 발생했어요.</div>';
-      }
-    }
+      const top10=Object.entries(vendorMap).sort((a,b)=>(b[1].y25+b[1].y26)-(a[1].y25+a[1].y26)).slice(0,10);
+      const maxV=Math.max(...top10.map(([,d])=>Math.max(d.y25,d.y26)));
+      const vDiv=document.getElementById('vendorChart');
+      vDiv.innerHTML='';
+      top10.forEach(([name,d])=>{
+        const y=pct(d.y26,d.y25);
+        const yStr=y!==null?`<span style="color:${y>=0?'var(--green)':'var(--red)'};font-size:10px;font-weight:600">${sign(y)}${y.toFixed(0)}%</span>`:'';
+        vDiv.innerHTML+=`<div class="vendor-item">
+          <div style="display:flex;justify-content:space-between"><span class="vendor-name">${name}</span>${yStr}</div>
+          <div class="vendor-bars">
+            <div class="vbar" style="width:${maxV?(d.y25/maxV*88).toFixed(1):0}%;background:var(--accent)"></div>
+            <div class="vbar" style="width:${maxV?(d.y26/maxV*88).toFixed(1):0}%;background:var(--green)"></div>
+          </div>
+          <div class="vendor-vals"><span style="color:var(--accent)">${fmt(d.y25)}</span><span style="color:var(--green)">${d.y26?fmt(d.y26):'—'}</span></div>
+        </div>`;
+      });
+      const vtb=document.getElementById('vendorTable');
+      vtb.innerHTML='';
+      top10.forEach(([name,d])=>{
+        const diff=d.y26-d.y25,y=pct(d.y26,d.y25);
+        vtb.innerHTML+=`<tr><td class="txt">${name}</td><td>${fmt(d.y25)}</td><td class="acc">${d.y26?fmt(d.y26):'—'}</td><td class="${uc(diff)}">${sign(diff)}${fmt(diff)}</td><td class="${uc(y)}">${y!==null?sign(y)+y.toFixed(0)+'%':'—'}</td></tr>`;
+      });
+    }catch(e){}
 
-    // 업데이트 시간
-    const now = new Date();
-    document.getElementById('lastUpdated').textContent = `${now.toLocaleDateString('ko-KR')} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')} 업데이트`;
-
-    // 로딩 해제
+    const now=new Date();
+    document.getElementById('lastUpdated').textContent=`${now.toLocaleDateString('ko-KR')} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
     document.getElementById('loadingOverlay').classList.add('hidden');
-
-  } catch (e) {
-    document.getElementById('loadingOverlay').innerHTML = `<div class="error-msg" style="max-width:400px;text-align:center;">데이터 로드 실패<br><span style="font-size:11px;color:var(--muted);margin-top:4px;display:block;">Google Sheets 공유 설정을 확인해주세요.<br>"링크가 있는 모든 사용자 → 뷰어"로 설정되어 있어야 해요.</span></div>`;
+  }catch(e){
+    document.getElementById('loadingOverlay').innerHTML=`<div style="text-align:center;padding:24px;color:var(--red);font-size:13px;">데이터 로드 실패<br><span style="font-size:11px;color:var(--muted);margin-top:4px;display:block;">Google Sheets 공유 설정을 확인해주세요.<br>"링크가 있는 모든 사용자 → 뷰어"로 설정되어 있어야 해요.</span></div>`;
   }
 }
 
-function renderVendor(vendorMap) {
-  const top10 = Object.entries(vendorMap).sort((a, b) => (b[1].y25 + b[1].y26) - (a[1].y25 + a[1].y26)).slice(0, 10);
-  const maxV = Math.max(...top10.map(([, d]) => Math.max(d.y25, d.y26)));
-  const vDiv = document.getElementById('vendorChart');
-  vDiv.innerHTML = '';
-  top10.forEach(([name, d]) => {
-    const y = pct(d.y26, d.y25);
-    const yStr = y !== null ? `<span style="color:${y >= 0 ? 'var(--green)' : 'var(--red)'};font-size:10px">${sign(y)}${y.toFixed(0)}%</span>` : '';
-    vDiv.innerHTML += `<div class="vendor-item">
-      <div style="display:flex;justify-content:space-between"><span class="vendor-name">${name}</span>${yStr}</div>
-      <div class="vendor-bars">
-        <div class="vbar" style="width:${maxV ? (d.y25 / maxV * 85).toFixed(1) : 0}%;background:var(--accent)"></div>
-        <div class="vbar" style="width:${maxV ? (d.y26 / maxV * 85).toFixed(1) : 0}%;background:var(--green)"></div>
-      </div>
-      <div class="vendor-vals"><span style="color:var(--accent)">${fmt(d.y25)}</span><span style="color:var(--green)">${d.y26 ? fmt(d.y26) : '—'}</span></div>
-    </div>`;
-  });
+// ── 파이프라인 리스트 ──────────────────────────────
+let pipeRawData=[];
+let activeQ=new Set();
+let activeS=new Set();
+let activeT=new Set();
 
-  const vtb = document.getElementById('vendorTable');
-  vtb.innerHTML = '';
-  top10.forEach(([name, d]) => {
-    const diff = d.y26 - d.y25;
-    const y = pct(d.y26, d.y25);
-    vtb.innerHTML += `<tr><td>${name}</td><td>${fmt(d.y25)}</td><td class="acc">${d.y26 ? fmt(d.y26) : '—'}</td><td class="${uc(diff)}">${sign(diff)}${fmt(diff)}</td><td class="${uc(y)}">${y !== null ? sign(y) + y.toFixed(0) + '%' : '—'}</td></tr>`;
-  });
-}
-
-// 파이프라인 리스트
-let pipeRawData = [];
-let activeQ   = new Set();
-let activeS   = new Set();
-let activeT   = new Set();
-
-const STAGE_COLORS = {
-  '25% (Pipeline)': {bg:'rgba(79,142,247,.15)', color:'#60A5FA'},
-  '50%(Best)':      {bg:'rgba(45,212,191,.15)', color:'#2dd4bf'},
-  '75%(Commit)':    {bg:'rgba(251,191,36,.15)', color:'#fbbf24'},
-  '90%(Won)':       {bg:'rgba(52,211,153,.15)', color:'#34d399'},
-  '100%(Invoice)':  {bg:'rgba(90,99,128,.15)',  color:'#8898B8'},
+const STAGE_COLORS={
+  '25% (Pipeline)':{bg:'rgba(37,99,235,.1)',  color:'#2563eb'},
+  '50%(Best)':     {bg:'rgba(8,145,178,.1)',   color:'#0891b2'},
+  '75%(Commit)':   {bg:'rgba(217,119,6,.1)',   color:'#d97706'},
+  '90%(Won)':      {bg:'rgba(22,163,74,.1)',   color:'#16a34a'},
+  '100%(Invoice)': {bg:'rgba(136,144,168,.1)', color:'#8890a8'},
 };
 
-function toggleFilter(type, btn) {
-  const val = btn.dataset.val;
-  const map = {q: activeQ, s: activeS, t: activeT};
-  const set = map[type];
-  if (set.has(val)) {
-    set.delete(val);
-    btn.classList.remove('active');
-  } else {
-    set.add(val);
-    btn.classList.add('active');
-  }
+function toggleFilter(type,btn){
+  const val=btn.dataset.val;
+  const map={q:activeQ,s:activeS,t:activeT};
+  const set=map[type];
+  if(set.has(val)){set.delete(val);btn.classList.remove('active');}
+  else{set.add(val);btn.classList.add('active');}
   renderPipeList();
 }
 
-function resetFilters() {
-  activeQ = new Set();
-  activeS = new Set();
-  activeT = new Set();
-  document.querySelectorAll('.q-btn,.s-btn,.t-btn').forEach(b => b.classList.add('active'));
+function selectAllFilters(){
+  activeQ=new Set(['Q1','Q2','Q3','Q4']);
+  activeS=new Set(['25% (Pipeline)','50%(Best)','75%(Commit)','90%(Won)','100%(Invoice)']);
+  activeT=new Set(['New','Renewal','Renewal(1st)','1time']);
+  document.querySelectorAll('.q-btn,.s-btn,.t-btn').forEach(b=>b.classList.add('active'));
   renderPipeList();
 }
 
-function fmtDate(val) {
-  if (!val) return '—';
-  const s = String(val);
-  // Date 형식 처리 (Date(year,month,day) 또는 yyyy-mm-dd)
-  const m = s.match(/Date\((\d+),(\d+),(\d+)\)/);
-  if (m) {
-    const y = m[1];
-    const mo = String(parseInt(m[2]) + 1).padStart(2,'0');
-    const d = String(m[3]).padStart(2,'0');
-    return `${y}-${mo}-${d}`;
-  }
-  // 이미 yyyy-mm-dd 형식
-  const clean = s.slice(0,10);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
-  // JS Date로 파싱 시도
-  const dt = new Date(val);
-  if (!isNaN(dt)) {
-    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-  }
-  return s.slice(0,10);
+function clearAllFilters(){
+  activeQ=new Set();activeS=new Set();activeT=new Set();
+  document.querySelectorAll('.q-btn,.s-btn,.t-btn').forEach(b=>b.classList.remove('active'));
+  renderPipeList();
 }
 
-function renderPipeList() {
-  const filtered = pipeRawData.filter(r => {
-    return activeQ.has(r['회계분기']) &&
-           activeS.has(r['상태']) &&
-           activeT.has(r['영업 구분']);
+function renderPipeList(){
+  // 아무것도 선택 안됐을 때
+  const noneSelected=activeQ.size===0&&activeS.size===0&&activeT.size===0;
+  if(noneSelected){
+    document.getElementById('pipeListBody').innerHTML='';
+    document.getElementById('pipeListSummary').innerHTML='';
+    document.getElementById('pipeListEmpty').style.display='block';
+    document.getElementById('pipeListEmpty').textContent='필터를 선택하면 리스트가 표시돼요';
+    return;
+  }
+
+  // 각 필터 그룹: 선택된 게 없으면 전체 통과
+  const filtered=pipeRawData.filter(r=>{
+    const qOk=activeQ.size===0||activeQ.has(r['회계분기']);
+    const sOk=activeS.size===0||activeS.has(r['상태']);
+    const tOk=activeT.size===0||activeT.has(r['영업 구분']);
+    return qOk&&sOk&&tOk;
   });
 
   // 요약
-  const totalCnt = filtered.length;
-  const totalRev = filtered.reduce((s,r) => s + (parseFloat(r['계약 금액'])||0), 0);
-  const totalMar = filtered.reduce((s,r) => s + (parseFloat(r['예상 마진'])||0), 0);
-  document.getElementById('pipeListSummary').innerHTML = `
-    <div class="pipe-summary-item"><div class="pipe-summary-label">건수</div><div class="pipe-summary-val">${totalCnt}건</div></div>
+  const totalRev=filtered.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+  const totalMar=filtered.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+  document.getElementById('pipeListSummary').innerHTML=`
+    <div class="pipe-summary-item"><div class="pipe-summary-label">건수</div><div class="pipe-summary-val">${filtered.length}건</div></div>
     <div class="pipe-summary-item"><div class="pipe-summary-label">계약금액 합계</div><div class="pipe-summary-val" style="color:var(--accent)">${fmt(totalRev)}</div></div>
     <div class="pipe-summary-item"><div class="pipe-summary-label">예상마진 합계</div><div class="pipe-summary-val" style="color:var(--green)">${fmt(totalMar)}</div></div>
   `;
 
-  const tbody = document.getElementById('pipeListBody');
-  const empty = document.getElementById('pipeListEmpty');
+  const empty=document.getElementById('pipeListEmpty');
+  const tbody=document.getElementById('pipeListBody');
+  if(filtered.length===0){tbody.innerHTML='';empty.style.display='block';empty.textContent='해당 조건의 데이터가 없어요';return;}
+  empty.style.display='none';
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-
-  // 마감일자 기준 정렬
-  filtered.sort((a, b) => {
-    const da = a['마감일자'] ? new Date(a['마감일자']) : new Date('9999-12-31');
-    const db = b['마감일자'] ? new Date(b['마감일자']) : new Date('9999-12-31');
-    return da - db;
+  // 마감일자 오름차순 정렬
+  filtered.sort((a,b)=>{
+    const da=fmtDate(a['마감일자']);
+    const db=fmtDate(b['마감일자']);
+    if(da==='—'&&db==='—') return 0;
+    if(da==='—') return 1;
+    if(db==='—') return -1;
+    return da.localeCompare(db);
   });
 
-  tbody.innerHTML = filtered.map(r => {
-    const stage = r['상태'] || '—';
-    const sc = STAGE_COLORS[stage] || {bg:'rgba(90,99,128,.15)',color:'var(--muted)'};
-    const rev = parseFloat(r['계약 금액']) || 0;
-    const mar = parseFloat(r['예상 마진']) || 0;
+  tbody.innerHTML=filtered.map(r=>{
+    const stage=r['상태']||'—';
+    const sc=STAGE_COLORS[stage]||{bg:'rgba(136,144,168,.1)',color:'#8890a8'};
+    const rev=parseFloat(r['계약 금액'])||0;
+    const mar=parseFloat(r['예상 마진'])||0;
     return `<tr>
       <td style="text-align:center;"><span class="stage-pill" style="background:${sc.bg};color:${sc.color}">${stage}</span></td>
-      <td style="text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">${fmtDate(r['마감일자'])}</td>
-      <td style="text-align:center;color:var(--text);font-weight:500;">${r['고객사명']||'—'}</td>
-      <td style="text-align:left;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r['프로젝트명']||'—'}</td>
-      <td style="text-align:center;color:var(--muted);">${r['제조사']||'—'}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;" class="${rev<0?'red':''}">${fmt(rev)}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;" class="${mar<0?'red':'grn'}">${fmt(mar)}</td>
+      <td style="text-align:center;font-family:'DM Mono';font-size:11px;color:var(--muted);">${fmtDate(r['마감일자'])}</td>
+      <td style="text-align:center;font-family:'Noto Sans KR';font-weight:500;color:var(--text);">${r['고객사명']||'—'}</td>
+      <td style="text-align:left;font-family:'Noto Sans KR';color:var(--muted);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r['프로젝트명']||'—'}</td>
+      <td style="text-align:center;font-family:'Noto Sans KR';color:var(--muted);">${r['제조사']||'—'}</td>
+      <td style="text-align:right;" class="${rev<0?'red':''}">${fmt(rev)}</td>
+      <td style="text-align:right;" class="${mar<0?'red':'grn'}">${fmt(mar)}</td>
     </tr>`;
   }).join('');
 }
 
-async function loadPipeList() {
-  try {
-    const raw = await fetchSheet('RAW');
-    // 2026년 전체 (Lost만 제외)
-    pipeRawData = raw.filter(r =>
-      String(r['회계년도']) === '2026' &&
-      r['상태'] !== '0%(Lost)' &&
-      r['상태'] != null
-    );
+async function loadPipeList(){
+  try{
+    const raw=await fetchSheet('RAW');
+    pipeRawData=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']!=='0%(Lost)'&&r['상태']!=null);
+    // 초기엔 아무것도 선택 안된 상태
     renderPipeList();
-  } catch(e) {
-    document.getElementById('pipeListBody').innerHTML =
-      `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">리스트 로드 실패</td></tr>`;
+  }catch(e){
+    document.getElementById('pipeListBody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">리스트 로드 실패</td></tr>`;
   }
 }
 
-// 실행
 loadFX();
 loadData();
 loadPipeList();
-setInterval(loadFX, 60000);
+setInterval(loadFX,60000);
 </script>
 </body>
 </html>
