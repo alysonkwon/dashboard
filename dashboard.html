@@ -154,31 +154,25 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <!-- 상단 카드 3개 (100% Invoice 기준) -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="kpiCards"></div>
 
-    <!-- 분기별 표 + 달성율 게이지 -->
-    <div class="grid2">
-      <div class="card">
-        <div class="card-title">26년 분기별 상세 (75%↑ 반영)</div>
-        <div style="overflow-x:auto;">
-          <table class="tbl">
-            <thead><tr>
-              <th style="text-align:left;">분기</th>
-              <th style="text-align:right;">Revenue</th>
-              <th style="text-align:right;">GM</th>
-              <th style="text-align:right;">GM(±IB)</th>
-              <th style="text-align:right;">GM 달성율</th>
-              <th style="text-align:center;">비고</th>
-            </tr></thead>
-            <tbody id="summaryBody"></tbody>
-          </table>
-        </div>
-        <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:10pt;color:var(--muted);"><div style="width:9px;height:9px;border-radius:2px;background:var(--accent);opacity:.8;"></div>확정 (100%)</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10pt;color:var(--muted);"><div style="width:9px;height:9px;border-radius:2px;background:var(--amber);opacity:.7;"></div>예측 (75%↑)</div>
-        </div>
+    <!-- 분기별 표 (전체 너비) -->
+    <div class="card">
+      <div class="card-title">26년 분기별 상세 (75%↑ 반영)</div>
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead><tr>
+            <th style="text-align:left;">분기</th>
+            <th style="text-align:right;">Revenue</th>
+            <th style="text-align:right;">GM</th>
+            <th style="text-align:right;">GM(±IB)</th>
+            <th style="text-align:right;">GM 달성율</th>
+            <th style="text-align:center;">비고</th>
+          </tr></thead>
+          <tbody id="summaryBody"></tbody>
+        </table>
       </div>
-      <div class="card">
-        <div class="card-title">연간 달성율 (26년)</div>
-        <div id="achieveChart"></div>
+      <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10pt;color:var(--muted);"><div style="width:9px;height:9px;border-radius:2px;background:var(--accent);opacity:.8;"></div>확정 (100%)</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10pt;color:var(--muted);"><div style="width:9px;height:9px;border-radius:2px;background:var(--amber);opacity:.7;"></div>예측 (75%↑)</div>
       </div>
     </div>
 
@@ -553,7 +547,7 @@ async function loadData(){
           <span style="font-size:10pt;font-weight:500;color:var(--muted);">${title}</span>${yoyHtml}
         </div>
         <div style="font-size:32px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);letter-spacing:-1px;margin-bottom:6px;">${(val/1e8).toFixed(1)}<span style="font-size:16px;font-weight:500;margin-left:2px;">억원</span></div>
-        <div style="font-size:9pt;color:var(--muted);margin-bottom:12px;">100% Invoice 확정 기준</div>
+        <div style="font-size:9pt;color:var(--muted);margin-bottom:12px;">100% 계산서 발행 기준</div>
         <div style="border-top:1px solid var(--border);padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:10pt;color:var(--muted);">Target ${tgtVal?fmt(tgtVal):'—'}</span>
           ${achv!==null?`<span style="font-size:12pt;font-weight:700;color:${achvColor(achv)};">${achv>=100?'✓':'!'} ${achv.toFixed(1)}%</span>`:'<span style="color:var(--muted);font-size:10pt;">미입력</span>'}
@@ -565,30 +559,6 @@ async function loadData(){
       ${kpiCard('Total Revenue',tot26rev,yoyRev,t26.rev,null)}
       ${kpiCard('Total GM',tot26gm,yoyGm,t26.gm,null)}
       ${kpiCard('Total GM (±IB)',tot26gm-tot26ib,null,t26.gm,`Margin Ratio ${marginRatio.toFixed(1)}%`)}
-    `;
-
-    // ── 달성율 게이지 (26년만) ──────────────
-    const aDiv=document.getElementById('achieveChart');
-    function gaugeBar(label,actualVal,target,color){
-      const r=target?Math.min(actualVal/target*100,150):0;
-      const w=Math.min(r,100);
-      return `<div style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-          <span style="font-size:10pt;font-weight:500;">${label}</span>
-          <span style="font-size:10pt;font-weight:700;color:${achvColor(r)}">${target?r.toFixed(1)+'%':'타겟 미입력'}</span>
-        </div>
-        <div style="height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;">
-          <div style="width:${w}%;height:100%;background:${color};border-radius:99px;transition:width .8s;"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10pt;color:var(--muted);">
-          <span>${fmt(actualVal)}</span><span>/ ${target?fmt(target):'—'}</span>
-        </div>
-      </div>`;
-    }
-    aDiv.innerHTML=`
-      <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:12px;">2026년 (100% 확정 기준)</div>
-      ${gaugeBar('Revenue',tot26rev,t26.rev,'var(--accent)')}
-      ${gaugeBar('GM',tot26gm,t26.gm,'var(--green)')}
     `;
 
     // ── 분기별 표 (75%↑) ──────────────────
