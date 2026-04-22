@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>전략사업본부 영업 실적 대시보드</title>
+<title>전략사업본부 실적 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -128,7 +128,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <div class="container">
   <div class="header">
     <div>
-      <div class="header-title">전략사업본부 실적 대시보드</div>
+      <div class="header-title">전략사업본부 영업 실적 대시보드</div>
       <div class="header-sub">2025 · 2026 실적 & 파이프라인</div>
     </div>
     <div class="last-updated" id="lastUpdated">로딩 중...</div>
@@ -210,32 +210,31 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="card">
       <div style="margin-bottom:14px;">
         <div class="card-title" style="margin-bottom:12px;">2026년 파이프라인 상세 리스트</div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-  <span class="filter-label">분기</span>
-  <div class="filter-wrap">
-    <button class="f-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
-    <button class="f-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
-    <button class="f-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
-    <button class="f-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
-  </div>
-  <span class="filter-label" style="margin-left:4px;">Stage</span>
-  <div class="filter-wrap">
-    <button class="f-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)">25%</button>
-    <button class="f-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)">50%</button>
-    <button class="f-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)">75%</button>
-    <button class="f-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)">90%</button>
-    <button class="f-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)">100%</button>
-  </div>
-  <span class="filter-label" style="margin-left:4px;">영업구분</span>
-  <div class="filter-wrap">
-    <button class="f-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
-    <button class="f-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
-    <button class="f-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
-    <button class="f-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
-  </div>
-  <button class="reset-btn" onclick="selectAllFilters()">전체 선택</button>
-  <button class="reset-btn" onclick="clearAllFilters()">전체 해제</button>
-</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="filter-label">분기</span>
+          <div class="filter-wrap">
+            <button class="f-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
+            <button class="f-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
+            <button class="f-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
+            <button class="f-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
+          </div>
+          <span class="filter-label" style="margin-left:4px;">Stage</span>
+          <div class="filter-wrap">
+            <button class="f-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)">25%</button>
+            <button class="f-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)">50%</button>
+            <button class="f-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)">75%</button>
+            <button class="f-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)">90%</button>
+            <button class="f-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)">100%</button>
+          </div>
+          <span class="filter-label" style="margin-left:4px;">영업구분</span>
+          <div class="filter-wrap">
+            <button class="f-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
+            <button class="f-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
+            <button class="f-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
+            <button class="f-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
+          </div>
+          <button class="reset-btn" onclick="selectAllFilters()">전체 선택</button>
+          <button class="reset-btn" onclick="clearAllFilters()">전체 해제</button>
         </div>
       </div>
       <div id="pipeListSummary" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"></div>
