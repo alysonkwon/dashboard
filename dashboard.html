@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영업 실적 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2336;--border:#252b3d;
+  --text:#e8eaf0;--muted:#5a6380;--accent:#4f8ef7;--accent2:#7c5cfc;
+  --green:#34d399;--red:#f87171;--amber:#fbbf24;--teal:#2dd4bf;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;min-height:100vh;}
+.container{max-width:1200px;margin:0 auto;padding:20px;}
+
+/* 헤더 */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.header-title{font-size:20px;font-weight:600;color:var(--text);}
+.header-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.last-updated{font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:99px;}
+
+/* 로딩 */
+.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px;}
+.loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+.loading-text{font-size:13px;color:var(--muted);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hidden{display:none!important;}
+
+/* 환율 배너 */
+.fx-banner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.fx-title{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:6px;}
+.fx-pair{display:flex;align-items:center;gap:7px;padding:6px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
+.fx-name{font-size:10px;color:var(--muted);min-width:54px;}
+.fx-rate{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;}
+.fx-chg{font-size:11px;font-weight:500;padding:2px 7px;border-radius:99px;}
+.fx-chg.up{background:rgba(52,211,153,.12);color:var(--green);}
+.fx-chg.dn{background:rgba(248,113,113,.12);color:var(--red);}
+.fx-chg.flat{background:rgba(90,99,128,.12);color:var(--muted);}
+.fx-src{margin-left:auto;font-size:10px;color:var(--muted);}
+
+/* 탭 */
+.tabs{display:flex;gap:3px;background:var(--surface);border-radius:10px;padding:4px;border:1px solid var(--border);margin-bottom:12px;}
+.tab{flex:1;padding:8px 0;text-align:center;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);transition:all .15s;border:none;background:transparent;}
+.tab.active{background:var(--surface2);color:var(--text);}
+.tab:hover:not(.active){color:var(--text);}
+
+/* 패널 */
+.panel{display:none;}.panel.active{display:grid;gap:12px;}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.kpi{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 12px;}
+.kpi-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.kpi-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-.5px;}
+.kpi-sub{font-size:11px;margin-top:4px;font-weight:500;}
+.up{color:var(--green)}.dn{color:var(--red)}.neu{color:var(--muted)}
+
+/* 카드 */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.card-title{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* 바 차트 */
+.bar-chart{display:flex;flex-direction:column;gap:6px;}
+.bar-row{display:flex;align-items:center;gap:8px;}
+.bar-label{font-size:11px;color:var(--muted);width:80px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-wrap{flex:1;height:20px;background:var(--surface2);border-radius:3px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+.bar-val{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:500;font-family:'DM Mono',monospace;}
+
+/* stage */
+.stage-item{margin-bottom:10px;}
+.stage-header{display:flex;justify-content:space-between;margin-bottom:4px;}
+.stage-track{height:7px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.stage-bar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+
+/* YoY 카드 */
+.yoy-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.yoy-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.yoy-q{font-size:10px;color:var(--muted);margin-bottom:8px;font-weight:500;}
+.yoy-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.yoy-year{font-size:10px;color:var(--muted);}
+.yoy-mar{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;}
+.yoy-change{font-size:12px;font-weight:600;margin-top:8px;padding:4px 8px;border-radius:6px;text-align:center;}
+.yoy-pipe{font-size:10px;color:var(--amber);margin-top:4px;text-align:center;}
+
+/* 테이블 */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:10px;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap;}
+.tbl th:first-child{text-align:left;}
+.tbl td{font-size:12px;padding:7px 8px;border-bottom:1px solid rgba(37,43,61,.6);font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;}
+.tbl td:first-child{font-family:'DM Sans',sans-serif;color:var(--muted);text-align:left;}
+.tbl tr:last-child td{border-bottom:none;font-weight:600;color:var(--text);}
+.tbl .acc{color:var(--accent)}.tbl .grn{color:var(--green)}.tbl .red{color:var(--red)}.tbl .amb{color:var(--amber)}
+
+/* 벤더 */
+.vendor-item{margin-bottom:10px;}
+.vendor-name{font-size:12px;color:var(--text);margin-bottom:3px;}
+.vendor-bars{display:flex;gap:3px;height:11px;}
+.vbar{height:100%;border-radius:2px;min-width:2px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+.vendor-vals{display:flex;gap:10px;margin-top:3px;font-size:10px;font-family:'DM Mono',monospace;}
+
+.legend-row{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+
+.error-msg{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:12px 16px;color:var(--red);font-size:13px;margin:8px 0;}
+
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .yoy-grid{grid-template-columns:repeat(2,1fr);}
+  .grid2{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- 로딩 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Google Sheets에서 데이터 불러오는 중...</div>
+</div>
+
+<div class="container">
+  <!-- 헤더 -->
+  <div class="header">
+    <div>
+      <div class="header-title">영업 실적 대시보드</div>
+      <div class="header-sub">2025 · 2026 실적 & 파이프라인</div>
+    </div>
+    <div class="last-updated" id="lastUpdated">로딩 중...</div>
+  </div>
+
+  <!-- 환율 -->
+  <div class="fx-banner">
+    <span class="fx-title">환율</span>
+    <div id="fxContent" style="display:flex;gap:6px;flex-wrap:wrap;"><span style="color:var(--muted);font-size:12px;">불러오는 중...</span></div>
+    <span class="fx-src" id="fxSrc"></span>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('summary')">전체 요약</button>
+    <button class="tab" onclick="switchTab('yoy')">YoY 분기 비교</button>
+    <button class="tab" onclick="switchTab('pipeline')">파이프라인</button>
+    <button class="tab" onclick="switchTab('vendor')">벤더 분석</button>
+  </div>
+
+  <!-- 전체 요약 -->
+  <div class="panel active" id="panel-summary">
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">분기별 마진 (25 vs 26)</div>
+        <div style="position:relative;height:200px;"><canvas id="qChart" role="img" aria-label="분기별 마진 비교"></canvas></div>
+        <div class="legend-row">
+          <div class="leg"><div class="leg-dot" style="background:rgba(79,142,247,.7)"></div>2025년 실적</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(52,211,153,.8)"></div>2026년 실적</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(251,191,36,.5)"></div>2026년 파이프라인(가중)</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">영업구분별 마진 비교 (25 vs 26)</div>
+        <div id="typeChart" class="bar-chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- YoY -->
+  <div class="panel" id="panel-yoy">
+    <div class="card">
+      <div class="card-title">동분기 YoY 마진 비교</div>
+      <div class="yoy-grid" id="yoyCards"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">분기별 상세 테이블</div>
+      <table class="tbl">
+        <thead><tr>
+          <th>분기</th>
+          <th>25년 건수</th><th>25년 마진</th>
+          <th>26년 건수</th><th>26년 마진</th>
+          <th>파이프라인(가중)</th>
+          <th>YoY 실적</th><th>YoY 전망</th>
+        </tr></thead>
+        <tbody id="yoyTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 파이프라인 -->
+  <div class="panel" id="panel-pipeline">
+    <div class="kpi-grid" id="pipeKpi"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Stage별 현황</div>
+        <div id="stageChart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">26년 분기별 파이프라인</div>
+        <div style="position:relative;height:180px;"><canvas id="pipeChart" role="img" aria-label="파이프라인 분기별 현황"></canvas></div>
+        <div class="legend-row">
+          <div class="leg"><div class="leg-dot" style="background:rgba(79,142,247,.4)"></div>예상마진</div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(52,211,153,.8)"></div>가중마진</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 벤더 -->
+  <div class="panel" id="panel-vendor">
+    <div class="card">
+      <div class="card-title">Vendor별 연간 마진 — 2025 vs 2026</div>
+      <div id="vendorChart"></div>
+      <div class="legend-row">
+        <div class="leg"><div class="leg-dot" style="background:var(--accent)"></div>2025년</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>2026년 (실적 기준)</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Vendor YoY 상세</div>
+      <table class="tbl">
+        <thead><tr><th>Vendor</th><th>25년 마진</th><th>26년 마진</th><th>증감</th><th>YoY</th></tr></thead>
+        <tbody id="vendorTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1L6Se7nl4s4r-ErTLw0JVPtu1V21SG2qb-sGBhHWOupc';
+
+function gvizUrl(sheet) {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
+}
+
+async function fetchSheet(sheet) {
+  const res = await fetch(gvizUrl(sheet));
+  const text = await res.text();
+  const json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?$/, ''));
+  const cols = json.table.cols.map(c => c.label);
+  const rows = json.table.rows.map(r =>
+    Object.fromEntries(cols.map((c, i) => [c, r.c[i] ? r.c[i].v : null]))
+  );
+  return rows;
+}
+
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  const a = Math.abs(n);
+  if (a >= 1e8) return (n / 1e8).toFixed(2) + '억';
+  if (a >= 1e4) return Math.round(n / 1e4) + '만';
+  return Math.round(n).toLocaleString();
+}
+function sign(v) { return v > 0 ? '+' : ''; }
+function pct(a, b) { return b && b !== 0 ? ((a - b) / Math.abs(b) * 100) : null; }
+function uc(v) { return !v || v === 0 ? 'neu' : v > 0 ? 'up' : 'dn'; }
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const ns = ['summary', 'yoy', 'pipeline', 'vendor'];
+    t.classList.toggle('active', ns[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+}
+
+// 환율
+async function loadFX() {
+  const prev = { USD: 1376.5, EUR: 1486.2, JPY: 9.02 };
+  try {
+    const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d = await r.json();
+    const curr = {
+      USD: d.rates.KRW,
+      EUR: d.rates.KRW / d.rates.EUR,
+      JPY: (d.rates.KRW / d.rates.JPY) * 100
+    };
+    const labels = { USD: 'USD/KRW', EUR: 'EUR/KRW', JPY: 'JPY/KRW(100엔)' };
+    let html = '';
+    for (const [k, cv] of Object.entries(curr)) {
+      const chg = (cv - prev[k]) / prev[k] * 100;
+      const disp = k === 'JPY' ? cv.toFixed(1) : Math.round(cv).toLocaleString();
+      const cls = chg > 0.3 ? 'up' : chg < -0.3 ? 'dn' : 'flat';
+      html += `<div class="fx-pair"><span class="fx-name">${labels[k]}</span><span class="fx-rate">${disp}</span><span class="fx-chg ${cls}">전년 동월 ${sign(chg)}${chg.toFixed(1)}%</span></div>`;
+    }
+    document.getElementById('fxContent').innerHTML = html;
+    const now = new Date();
+    document.getElementById('fxSrc').textContent = `전년비교: 한국은행 ECOS 2025년 4월 평균 · ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')} 갱신`;
+  } catch (e) {
+    document.getElementById('fxContent').innerHTML = '<span style="color:var(--muted);font-size:12px;">환율 로드 실패</span>';
+  }
+}
+
+// 메인 데이터 로드 및 렌더링
+async function loadData() {
+  try {
+    const [actual, pipeline] = await Promise.all([
+      fetchSheet('실적_집계'),
+      fetchSheet('파이프라인_집계')
+    ]);
+
+    // ── 집계 ──────────────────────────────
+    const QS = ['Q1', 'Q2', 'Q3', 'Q4'];
+    const qData = {};
+    for (const yr of ['2025', '2026']) {
+      qData[yr] = {};
+      for (const q of QS) {
+        const rows = actual.filter(r => String(r['회계년도']) === yr && r['회계분기'] === q);
+        qData[yr][q] = {
+          cnt: rows.reduce((s, r) => s + (r['건수'] || 0), 0),
+          rev: rows.reduce((s, r) => s + (r['계약금액'] || 0), 0),
+          mar: rows.reduce((s, r) => s + (r['마진'] || 0), 0),
+        };
+        const pRows = pipeline.filter(r => String(r['회계년도']) === yr && r['회계분기'] === q);
+        qData[yr][q].pcnt = pRows.reduce((s, r) => s + (r['건수'] || 0), 0);
+        qData[yr][q].pmar = pRows.reduce((s, r) => s + (r['예상마진'] || 0), 0);
+        qData[yr][q].pwmar = pRows.reduce((s, r) => s + (r['가중마진'] || 0), 0);
+      }
+    }
+
+    // 영업구분별
+    const types = {};
+    for (const t of ['New', 'Renewal', 'Renewal(1st)', '1time']) {
+      types[t] = { mar25: 0, mar26: 0 };
+      for (const yr of ['2025', '2026']) {
+        const rows = actual.filter(r => String(r['회계년도']) === yr && r['영업구분'] === t);
+        types[t][`mar${yr.slice(2)}`] = rows.reduce((s, r) => s + (r['마진'] || 0), 0);
+      }
+    }
+
+    // 벤더별 (RAW 대신 실적_집계에 제조사 없으면 원본 데이터 활용 불가 → 집계에서 가능한 것만)
+    // 파이프라인 Stage별
+    const stages = {};
+    const stageNames = ['25% (Pipeline)', '50%(Best)', '75%(Commit)', '90%(Won)'];
+    for (const s of stageNames) {
+      const rows = pipeline.filter(r => r['상태'] === s);
+      stages[s] = {
+        cnt: rows.reduce((s2, r) => s2 + (r['건수'] || 0), 0),
+        pmar: rows.reduce((s2, r) => s2 + (r['예상마진'] || 0), 0),
+        wmar: rows.reduce((s2, r) => s2 + (r['가중마진'] || 0), 0),
+      };
+    }
+
+    // ── KPI 렌더 ──────────────────────────
+    const tot25 = QS.reduce((s, q) => s + qData['2025'][q].mar, 0);
+    const tot26act = QS.reduce((s, q) => s + qData['2026'][q].mar, 0);
+    const tot26pipe = QS.reduce((s, q) => s + (qData['2026'][q].pwmar || 0), 0);
+    const tot26fore = tot26act + tot26pipe;
+    const yoyQ1 = pct(qData['2026']['Q1'].mar, qData['2025']['Q1'].mar);
+
+    document.getElementById('kpiGrid').innerHTML = `
+      <div class="kpi"><div class="kpi-label">25년 연간 마진</div><div class="kpi-val" style="color:var(--text)">${fmt(tot25)}</div><div class="kpi-sub neu">실적 확정</div></div>
+      <div class="kpi"><div class="kpi-label">26년 실적 마진 (Q1)</div><div class="kpi-val" style="color:var(--green)">${fmt(qData['2026']['Q1'].mar)}</div><div class="kpi-sub up">Q1 YoY ${sign(yoyQ1)}${(yoyQ1 || 0).toFixed(1)}%</div></div>
+      <div class="kpi"><div class="kpi-label">26년 파이프라인(가중)</div><div class="kpi-val" style="color:var(--accent)">${fmt(tot26pipe)}</div><div class="kpi-sub neu">Q2~Q4 기대치</div></div>
+      <div class="kpi"><div class="kpi-label">26년 연간 전망</div><div class="kpi-val" style="color:var(--amber)">${fmt(tot26fore)}</div><div class="kpi-sub ${uc(pct(tot26fore, tot25))}">vs 25년 ${sign(pct(tot26fore, tot25) || 0)}${(pct(tot26fore, tot25) || 0).toFixed(1)}%</div></div>
+    `;
+
+    // ── 분기 차트 ──────────────────────────
+    setTimeout(() => {
+      new Chart(document.getElementById('qChart'), {
+        type: 'bar',
+        data: {
+          labels: QS,
+          datasets: [
+            { label: '25년 실적', data: QS.map(q => +(qData['2025'][q].mar / 1e8).toFixed(2)), backgroundColor: 'rgba(79,142,247,.65)', borderRadius: 4, borderSkipped: false },
+            { label: '26년 실적', data: QS.map(q => +(qData['2026'][q].mar / 1e8).toFixed(2)), backgroundColor: 'rgba(52,211,153,.8)', borderRadius: 4, borderSkipped: false },
+            { label: '26년 파이프라인', data: QS.map(q => +((qData['2026'][q].pwmar || 0) / 1e8).toFixed(2)), backgroundColor: 'rgba(251,191,36,.45)', borderRadius: 4, borderSkipped: false },
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}억` } } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#5a6380', font: { size: 11 } } },
+            y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#5a6380', font: { size: 10 }, callback: v => v + '억' } }
+          }
+        }
+      });
+
+      // 파이프라인 흐름 차트
+      const pipeQs = ['Q2', 'Q3', 'Q4'];
+      new Chart(document.getElementById('pipeChart'), {
+        type: 'bar',
+        data: {
+          labels: pipeQs,
+          datasets: [
+            { label: '예상마진', data: pipeQs.map(q => +((qData['2026'][q].pmar || 0) / 1e8).toFixed(2)), backgroundColor: 'rgba(79,142,247,.35)', borderRadius: 4 },
+            { label: '가중마진', data: pipeQs.map(q => +((qData['2026'][q].pwmar || 0) / 1e8).toFixed(2)), backgroundColor: 'rgba(52,211,153,.8)', borderRadius: 4 },
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#5a6380' } },
+            y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#5a6380', callback: v => v + '억' } }
+          }
+        }
+      });
+    }, 150);
+
+    // ── 영업구분 바 ──────────────────────────
+    const tDiv = document.getElementById('typeChart');
+    const tcols = { 'New': ['var(--accent)', 'rgba(79,142,247,.3)'], 'Renewal': ['var(--green)', 'rgba(52,211,153,.3)'], 'Renewal(1st)': ['var(--amber)', 'rgba(251,191,36,.3)'], '1time': ['var(--red)', 'rgba(248,113,113,.3)'] };
+    const maxT = Math.max(...Object.values(types).map(d => Math.max(d.mar25, d.mar26)));
+    tDiv.innerHTML = '';
+    Object.entries(types).forEach(([name, d]) => {
+      const [c25, c26] = tcols[name] || ['var(--muted)', 'rgba(255,255,255,.1)'];
+      const yoy = pct(d.mar26, d.mar25);
+      const yoyStr = yoy !== null ? `<span style="color:${yoy >= 0 ? 'var(--green)' : 'var(--red)'};font-size:10px;margin-left:6px">${sign(yoy)}${yoy.toFixed(1)}%</span>` : '';
+      tDiv.innerHTML += `<div style="margin-bottom:9px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:12px;">${name}</span>${yoyStr}</div>
+        <div class="bar-row"><span class="bar-label" style="width:28px;font-size:10px">25년</span><div class="bar-wrap"><div class="bar-fill" style="width:${maxT ? (d.mar25 / maxT * 100).toFixed(1) : 0}%;background:${c25}"></div><span class="bar-val">${fmt(d.mar25)}</span></div></div>
+        <div class="bar-row" style="margin-top:2px;"><span class="bar-label" style="width:28px;font-size:10px">26년</span><div class="bar-wrap"><div class="bar-fill" style="width:${maxT ? (d.mar26 / maxT * 100).toFixed(1) : 0}%;background:${c26}"></div><span class="bar-val">${fmt(d.mar26)}</span></div></div>
+      </div>`;
+    });
+
+    // ── YoY 카드 ──────────────────────────
+    const yoyCards = document.getElementById('yoyCards');
+    yoyCards.innerHTML = '';
+    QS.forEach(q => {
+      const m25 = qData['2025'][q].mar, m26 = qData['2026'][q].mar, pw = qData['2026'][q].pwmar || 0;
+      const y = pct(m26, m25), yi = pct(m26 + pw, m25);
+      const bg = y === null ? 'rgba(90,99,128,.1)' : y >= 0 ? 'rgba(52,211,153,.1)' : 'rgba(248,113,113,.1)';
+      const col = y === null ? 'var(--muted)' : y >= 0 ? 'var(--green)' : 'var(--red)';
+      yoyCards.innerHTML += `<div class="yoy-card">
+        <div class="yoy-q">${q}</div>
+        <div class="yoy-row"><span class="yoy-year">2025</span><span class="yoy-mar">${fmt(m25)}</span></div>
+        <div class="yoy-row"><span class="yoy-year">2026 실적</span><span class="yoy-mar" style="color:var(--accent)">${m26 ? fmt(m26) : '—'}</span></div>
+        <div class="yoy-change" style="background:${bg};color:${col}">실적 YoY ${y !== null ? sign(y) + y.toFixed(1) + '%' : '—'}</div>
+        ${pw ? `<div class="yoy-pipe">파이프라인 포함 ${sign(yi || 0)}${(yi || 0).toFixed(1)}%</div>` : ''}
+      </div>`;
+    });
+
+    // YoY 테이블
+    const ytb = document.getElementById('yoyTable');
+    ytb.innerHTML = '';
+    let t25 = 0, t26 = 0, tpw = 0, tc25 = 0, tc26 = 0;
+    QS.forEach(q => {
+      const { cnt: c25, mar: m25 } = qData['2025'][q];
+      const { cnt: c26, mar: m26, pwmar: pw = 0 } = qData['2026'][q];
+      const y = pct(m26, m25), yi = pct(m26 + pw, m25);
+      t25 += m25; t26 += m26; tpw += pw; tc25 += c25; tc26 += c26;
+      ytb.innerHTML += `<tr>
+        <td>${q}</td><td>${c25}</td><td>${fmt(m25)}</td>
+        <td class="acc">${c26 || '—'}</td><td class="acc">${m26 ? fmt(m26) : '—'}</td>
+        <td class="amb">${pw ? fmt(pw) : '—'}</td>
+        <td class="${uc(y)}">${y !== null ? sign(y) + y.toFixed(1) + '%' : '—'}</td>
+        <td class="${uc(yi)}">${yi !== null ? sign(yi) + yi.toFixed(1) + '%' : '—'}</td>
+      </tr>`;
+    });
+    const ty = pct(t26, t25), tyi = pct(t26 + tpw, t25);
+    ytb.innerHTML += `<tr><td>합계</td><td>${tc25}</td><td>${fmt(t25)}</td><td class="acc">${tc26}</td><td class="acc">${fmt(t26)}</td><td class="amb">${fmt(tpw)}</td><td class="${uc(ty)}">${ty !== null ? sign(ty) + ty.toFixed(1) + '%' : '—'}</td><td class="${uc(tyi)}">${tyi !== null ? sign(tyi) + tyi.toFixed(1) + '%' : '—'}</td></tr>`;
+
+    // ── 파이프라인 KPI ──────────────────────
+    const totPcnt = Object.values(stages).reduce((s, d) => s + d.cnt, 0);
+    const totPmar = Object.values(stages).reduce((s, d) => s + d.pmar, 0);
+    const totWmar = Object.values(stages).reduce((s, d) => s + d.wmar, 0);
+    const wonCnt = stages['90%(Won)']?.cnt || 0;
+    document.getElementById('pipeKpi').innerHTML = `
+      <div class="kpi"><div class="kpi-label">전체 파이프라인</div><div class="kpi-val" style="color:var(--accent)">${totPcnt}건</div><div class="kpi-sub neu">Lost 제외</div></div>
+      <div class="kpi"><div class="kpi-label">예상마진 합계</div><div class="kpi-val">${fmt(totPmar)}</div><div class="kpi-sub neu">확률 미반영</div></div>
+      <div class="kpi"><div class="kpi-label">가중마진 합계</div><div class="kpi-val" style="color:var(--green)">${fmt(totWmar)}</div><div class="kpi-sub up">Stage 확률 반영</div></div>
+      <div class="kpi"><div class="kpi-label">90%(Won)</div><div class="kpi-val" style="color:var(--amber)">${wonCnt}건</div><div class="kpi-sub neu">거의 확정</div></div>
+    `;
+
+    // Stage 차트
+    const sCols = { '25% (Pipeline)': '#4f8ef7', '50%(Best)': '#2dd4bf', '75%(Commit)': '#fbbf24', '90%(Won)': '#34d399' };
+    const sDiv = document.getElementById('stageChart');
+    sDiv.innerHTML = '';
+    const maxS = Math.max(...Object.values(stages).map(d => d.pmar || 0));
+    stageNames.forEach(name => {
+      const d = stages[name] || { cnt: 0, pmar: 0, wmar: 0 };
+      const c = sCols[name];
+      sDiv.innerHTML += `<div class="stage-item">
+        <div class="stage-header">
+          <span style="font-size:12px;color:var(--text)">${name} <span style="color:var(--muted);font-size:10px">${d.cnt}건</span></span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono'">예상 ${fmt(d.pmar)} → 가중 <span style="color:${c}">${fmt(d.wmar)}</span></span>
+        </div>
+        <div class="stage-track"><div class="stage-bar-fill" style="width:${maxS ? (d.pmar / maxS * 100).toFixed(1) : 0}%;background:${c}"></div></div>
+      </div>`;
+    });
+
+    // ── 벤더 (실적_집계에 제조사 컬럼 있으면 집계, 없으면 안내) ──
+    const hasVendor = actual.length > 0 && actual[0].hasOwnProperty('제조사');
+    if (hasVendor) {
+      const vendorMap = {};
+      actual.forEach(r => {
+        const v = r['제조사'];
+        if (!v) return;
+        if (!vendorMap[v]) vendorMap[v] = { y25: 0, y26: 0 };
+        const yr = String(r['회계년도']);
+        if (yr === '2025') vendorMap[v].y25 += r['마진'] || 0;
+        else if (yr === '2026') vendorMap[v].y26 += r['마진'] || 0;
+      });
+      renderVendor(vendorMap);
+    } else {
+      // 실적_집계에 제조사 없으면 RAW에서 직접 가져오기
+      try {
+        const raw = await fetchSheet('RAW');
+        const vendorMap = {};
+        raw.forEach(r => {
+          const v = r['제조사'];
+          if (!v || r['상태'] !== '100%(Invoice)') return;
+          if (!vendorMap[v]) vendorMap[v] = { y25: 0, y26: 0 };
+          const yr = String(r['회계년도']);
+          if (yr === '2025') vendorMap[v].y25 += r['예상 마진'] || 0;
+          else if (yr === '2026') vendorMap[v].y26 += r['예상 마진'] || 0;
+        });
+        renderVendor(vendorMap);
+      } catch (e) {
+        document.getElementById('vendorChart').innerHTML = '<div style="color:var(--muted);font-size:12px;padding:12px 0;">벤더 데이터 로드 중 오류가 발생했어요.</div>';
+      }
+    }
+
+    // 업데이트 시간
+    const now = new Date();
+    document.getElementById('lastUpdated').textContent = `${now.toLocaleDateString('ko-KR')} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')} 업데이트`;
+
+    // 로딩 해제
+    document.getElementById('loadingOverlay').classList.add('hidden');
+
+  } catch (e) {
+    document.getElementById('loadingOverlay').innerHTML = `<div class="error-msg" style="max-width:400px;text-align:center;">데이터 로드 실패<br><span style="font-size:11px;color:var(--muted);margin-top:4px;display:block;">Google Sheets 공유 설정을 확인해주세요.<br>"링크가 있는 모든 사용자 → 뷰어"로 설정되어 있어야 해요.</span></div>`;
+  }
+}
+
+function renderVendor(vendorMap) {
+  const top10 = Object.entries(vendorMap).sort((a, b) => (b[1].y25 + b[1].y26) - (a[1].y25 + a[1].y26)).slice(0, 10);
+  const maxV = Math.max(...top10.map(([, d]) => Math.max(d.y25, d.y26)));
+  const vDiv = document.getElementById('vendorChart');
+  vDiv.innerHTML = '';
+  top10.forEach(([name, d]) => {
+    const y = pct(d.y26, d.y25);
+    const yStr = y !== null ? `<span style="color:${y >= 0 ? 'var(--green)' : 'var(--red)'};font-size:10px">${sign(y)}${y.toFixed(0)}%</span>` : '';
+    vDiv.innerHTML += `<div class="vendor-item">
+      <div style="display:flex;justify-content:space-between"><span class="vendor-name">${name}</span>${yStr}</div>
+      <div class="vendor-bars">
+        <div class="vbar" style="width:${maxV ? (d.y25 / maxV * 85).toFixed(1) : 0}%;background:var(--accent)"></div>
+        <div class="vbar" style="width:${maxV ? (d.y26 / maxV * 85).toFixed(1) : 0}%;background:var(--green)"></div>
+      </div>
+      <div class="vendor-vals"><span style="color:var(--accent)">${fmt(d.y25)}</span><span style="color:var(--green)">${d.y26 ? fmt(d.y26) : '—'}</span></div>
+    </div>`;
+  });
+
+  const vtb = document.getElementById('vendorTable');
+  vtb.innerHTML = '';
+  top10.forEach(([name, d]) => {
+    const diff = d.y26 - d.y25;
+    const y = pct(d.y26, d.y25);
+    vtb.innerHTML += `<tr><td>${name}</td><td>${fmt(d.y25)}</td><td class="acc">${d.y26 ? fmt(d.y26) : '—'}</td><td class="${uc(diff)}">${sign(diff)}${fmt(diff)}</td><td class="${uc(y)}">${y !== null ? sign(y) + y.toFixed(0) + '%' : '—'}</td></tr>`;
+  });
+}
+
+// 실행
+loadFX();
+loadData();
+setInterval(loadFX, 60000);
+</script>
+</body>
+</html>
