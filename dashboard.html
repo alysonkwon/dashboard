@@ -450,25 +450,33 @@ async function loadFX(){
 
 async function loadData(){
   try{
-    const [actual, pipeline, raw, targetSheet] = await Promise.all([
+    // 시트별 개별 로드 - 하나 실패해도 나머지 정상 동작
+    const [actual, pipeline, raw] = await Promise.all([
       fetchSheet('실적_집계'),
       fetchSheet('파이프라인_집계'),
       fetchSheet('RAW'),
-      fetchSheet('target')
     ]);
+
+    // 타겟 시트는 별도 로드 (실패시 빈 배열)
+    let targetSheet = [];
+    try { targetSheet = await fetchSheet('타겟'); } catch(e) { console.warn('타겟 시트 로드 실패:', e); }
 
     const QS=['Q1','Q2','Q3','Q4'];
 
-    // target 데이터 파싱
+    // 타겟 데이터 파싱
     const tgtMap={};
-    targetSheet.forEach(r=>{
-      const key=r['구분']||r[Object.keys(r)[0]];
-      if(!key) return;
-      tgtMap[key]={
-        rev: parseFloat(r['Target_Revenue'])||0,
-        gm:  parseFloat(r['Target_GM'])||0,
-      };
-    });
+    if(targetSheet.length > 0){
+      targetSheet.forEach(r=>{
+        if(!r) return;
+        const keys=Object.keys(r);
+        const key=r['구분']||r[keys[0]];
+        if(!key) return;
+        tgtMap[String(key).trim()]={
+          rev: parseFloat(r['Target_Revenue'])||0,
+          gm:  parseFloat(r['Target_GM'])||0,
+        };
+      });
+    }
     function getTgt(key){return tgtMap[key]||{rev:0,gm:0};}
 
     // RAW 기반 집계 (IB 포함)
