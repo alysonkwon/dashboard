@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .reset-btn{font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;}
 .reset-btn:hover{border-color:var(--accent);color:var(--accent);}
 
-.stage-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:400;white-space:nowrap;}
+.stage-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap;}
 .pipe-summary-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;}
 .pipe-summary-label{font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:500;}
 .pipe-summary-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;}
@@ -145,6 +145,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <button class="tab" onclick="switchTab('yoy')">YoY 분기 비교</button>
     <button class="tab" onclick="switchTab('pipeline')">파이프라인</button>
     <button class="tab" onclick="switchTab('vendor')">벤더 분석</button>
+    <button class="tab" onclick="switchTab('ib')">인터빌링</button>
   </div>
 
   <!-- 전체 요약 -->
@@ -277,6 +278,67 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       </table>
     </div>
   </div>
+
+  <!-- 인터빌링 -->
+  <div class="panel" id="panel-ib">
+    <div class="kpi-grid" id="ibKpi"></div>
+
+    <!-- 본부별 집계 -->
+    <div class="card">
+      <div class="card-title">지원본부별 인터빌링 집계</div>
+      <table class="tbl">
+        <thead><tr>
+          <th style="text-align:left;">지원본부</th>
+          <th>25년 마진</th>
+          <th>25년 IB 차감</th>
+          <th>25년 순마진</th>
+          <th>26년 마진</th>
+          <th>26년 IB 차감</th>
+          <th>26년 순마진</th>
+        </tr></thead>
+        <tbody id="ibHqTable"></tbody>
+      </table>
+    </div>
+
+    <!-- 상세 리스트 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:0;">IB 발생 건별 상세 리스트</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span class="filter-label">연도</span>
+          <div class="filter-wrap">
+            <button class="f-btn ib-yr-btn active" data-val="2025" onclick="toggleIbFilter('yr',this)">2025</button>
+            <button class="f-btn ib-yr-btn active" data-val="2026" onclick="toggleIbFilter('yr',this)">2026</button>
+          </div>
+          <span class="filter-label" style="margin-left:4px;">본부</span>
+          <div class="filter-wrap">
+            <button class="f-btn ib-hq-btn active" data-val="보안사업본부" onclick="toggleIbFilter('hq',this)">보안</button>
+            <button class="f-btn ib-hq-btn active" data-val="이노베이션사업본부" onclick="toggleIbFilter('hq',this)">이노베이션</button>
+            <button class="f-btn ib-hq-btn active" data-val="연구개발본부" onclick="toggleIbFilter('hq',this)">연구개발</button>
+          </div>
+          <button class="reset-btn" onclick="resetIbFilters()">전체 선택</button>
+        </div>
+      </div>
+      <div id="ibListSummary" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"></div>
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead><tr>
+            <th style="text-align:center;">연도</th>
+            <th style="text-align:center;">Stage</th>
+            <th style="text-align:center;">분기</th>
+            <th style="text-align:center;">고객사</th>
+            <th style="text-align:left;">프로젝트명</th>
+            <th style="text-align:center;">담당본부</th>
+            <th style="text-align:center;">제조사</th>
+            <th style="text-align:right;">마진</th>
+            <th style="text-align:right;">IB 금액</th>
+          </tr></thead>
+          <tbody id="ibListBody"></tbody>
+        </table>
+      </div>
+      <div id="ibListEmpty" style="text-align:center;padding:24px;color:var(--muted);font-size:13px;display:none;">해당 조건의 데이터가 없어요</div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -322,7 +384,7 @@ function fmtDate(val){
 
 function switchTab(name){
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['summary','yoy','pipeline','vendor'][i]===name);
+    t.classList.toggle('active',['summary','yoy','pipeline','vendor','ib'][i]===name);
   });
   document.querySelectorAll('.panel').forEach(p=>{
     p.classList.toggle('active',p.id==='panel-'+name);
@@ -331,7 +393,7 @@ function switchTab(name){
 
 // 환율
 async function loadFX(){
-  const prev={USD:1376.5,EUR:1486.2,JPY:902.0};
+  const prev={USD:1376.5,EUR:1486.2,JPY:9.02};
   try{
     const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
     const d=await r.json();
@@ -662,6 +724,171 @@ loadFX();
 loadData();
 loadPipeList();
 setInterval(loadFX,60000);
+
+// ── 인터빌링 ──────────────────────────────
+let ibRawData=[];
+let ibActiveYr=new Set(['2025','2026']);
+let ibActiveHq=new Set(['보안사업본부','이노베이션사업본부','연구개발본부']);
+
+// 본부명 정제 (코드 제거)
+function cleanHq(hq){
+  if(!hq) return '—';
+  if(hq.includes('보안사업본부')) return '보안사업본부';
+  if(hq.includes('이노베이션사업본부')) return '이노베이션사업본부';
+  if(hq.includes('연구개발')) return '연구개발본부';
+  if(hq.includes('전략사업본부')) return '전략사업본부';
+  return hq.replace(/\(.*?\)/g,'').trim();
+}
+
+function getIb(r){
+  const yr=String(r['회계년도']);
+  if(yr==='2025') return parseFloat(r['IB(-)'])||0;
+  return parseFloat(r['Interbilling'])||0;
+}
+
+function toggleIbFilter(type,btn){
+  const val=btn.dataset.val;
+  const map={yr:ibActiveYr,hq:ibActiveHq};
+  const set=map[type];
+  if(set.has(val)){set.delete(val);btn.classList.remove('active');}
+  else{set.add(val);btn.classList.add('active');}
+  renderIbList();
+}
+
+function resetIbFilters(){
+  ibActiveYr=new Set(['2025','2026']);
+  ibActiveHq=new Set(['보안사업본부','이노베이션사업본부','연구개발본부']);
+  document.querySelectorAll('.ib-yr-btn,.ib-hq-btn').forEach(b=>b.classList.add('active'));
+  renderIbList();
+}
+
+function renderIbList(){
+  const filtered=ibRawData.filter(r=>{
+    return ibActiveYr.has(String(r['회계년도']))&&ibActiveHq.has(cleanHq(r['지원 본부']));
+  });
+
+  const totMar=filtered.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+  const totIb=filtered.reduce((s,r)=>s+getIb(r),0);
+  document.getElementById('ibListSummary').innerHTML=`
+    <div class="pipe-summary-item"><div class="pipe-summary-label">건수</div><div class="pipe-summary-val">${filtered.length}건</div></div>
+    <div class="pipe-summary-item"><div class="pipe-summary-label">마진 합계</div><div class="pipe-summary-val" style="color:var(--accent)">${fmt(totMar)}</div></div>
+    <div class="pipe-summary-item"><div class="pipe-summary-label">IB 차감 합계</div><div class="pipe-summary-val" style="color:var(--red)">${fmt(totIb)}</div></div>
+    <div class="pipe-summary-item"><div class="pipe-summary-label">순마진 합계</div><div class="pipe-summary-val" style="color:var(--green)">${fmt(totMar-totIb)}</div></div>
+  `;
+
+  const tbody=document.getElementById('ibListBody');
+  const empty=document.getElementById('ibListEmpty');
+  if(filtered.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  // 연도 → 분기 → 마감일자 정렬
+  filtered.sort((a,b)=>{
+    const yrDiff=String(a['회계년도']).localeCompare(String(b['회계년도']));
+    if(yrDiff!==0) return yrDiff;
+    const qDiff=(a['회계분기']||'').localeCompare(b['회계분기']||'');
+    if(qDiff!==0) return qDiff;
+    return fmtDate(a['마감일자']).localeCompare(fmtDate(b['마감일자']));
+  });
+
+  const STAGE_COLORS={
+    '25% (Pipeline)':{bg:'rgba(37,99,235,.1)',color:'#2563eb'},
+    '50%(Best)':{bg:'rgba(8,145,178,.1)',color:'#0891b2'},
+    '75%(Commit)':{bg:'rgba(217,119,6,.1)',color:'#d97706'},
+    '90%(Won)':{bg:'rgba(22,163,74,.1)',color:'#16a34a'},
+    '100%(Invoice)':{bg:'rgba(136,144,168,.1)',color:'#8890a8'},
+  };
+
+  tbody.innerHTML=filtered.map(r=>{
+    const stage=r['상태']||'—';
+    const sc=STAGE_COLORS[stage]||{bg:'rgba(136,144,168,.1)',color:'#8890a8'};
+    const mar=parseFloat(r['예상 마진'])||0;
+    const ib=getIb(r);
+    return `<tr>
+      <td style="text-align:center;color:var(--muted);font-size:11px;">${r['회계년도']||'—'}</td>
+      <td style="text-align:center;"><span class="stage-pill" style="background:${sc.bg};color:${sc.color}">${stage}</span></td>
+      <td style="text-align:center;color:var(--muted);">${r['회계분기']||'—'}</td>
+      <td style="text-align:center;font-family:'Noto Sans KR';font-weight:500;color:var(--text);">${r['고객사명']||'—'}</td>
+      <td style="text-align:left;font-family:'Noto Sans KR';color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r['프로젝트명']||'—'}</td>
+      <td style="text-align:center;font-family:'Noto Sans KR';color:var(--muted);">${cleanHq(r['지원 본부'])}</td>
+      <td style="text-align:center;font-family:'Noto Sans KR';color:var(--muted);">${r['제조사']||'—'}</td>
+      <td style="text-align:right;" class="${mar<0?'red':''}">${fmt(mar)}</td>
+      <td style="text-align:right;color:var(--red);font-weight:600;">${ib?fmt(ib):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadIb(){
+  try{
+    const raw=await fetchSheet('RAW');
+
+    // IB 있는 건만 필터 (실적 + 파이프라인 모두, Lost 제외)
+    ibRawData=raw.filter(r=>{
+      if(r['상태']==='0%(Lost)') return false;
+      const ib=getIb(r);
+      return ib>0;
+    });
+
+    // KPI
+    const ib25rows=raw.filter(r=>String(r['회계년도'])==='2025'&&r['상태']==='100%(Invoice)');
+    const ib26rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']==='100%(Invoice)');
+    const mar25=ib25rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    const mar26=ib26rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    const ib25=ib25rows.reduce((s,r)=>s+(parseFloat(r['IB(-)'])||0),0);
+    const ib26=ib26rows.reduce((s,r)=>s+(parseFloat(r['Interbilling'])||0),0);
+    const net25=mar25-ib25, net26=mar26-ib26;
+
+    document.getElementById('ibKpi').innerHTML=`
+      <div class="kpi"><div class="kpi-label">25년 IB 차감 합계</div><div class="kpi-val" style="color:var(--red)">${fmt(ib25)}</div><div class="kpi-sub neu">마진의 ${mar25?(ib25/mar25*100).toFixed(1):0}%</div></div>
+      <div class="kpi"><div class="kpi-label">25년 순마진 (IB 차감 후)</div><div class="kpi-val" style="color:var(--green)">${fmt(net25)}</div><div class="kpi-sub neu">총마진 ${fmt(mar25)}</div></div>
+      <div class="kpi"><div class="kpi-label">26년 IB 차감 합계</div><div class="kpi-val" style="color:var(--red)">${fmt(ib26)}</div><div class="kpi-sub neu">마진의 ${mar26?(ib26/mar26*100).toFixed(1):0}%</div></div>
+      <div class="kpi"><div class="kpi-label">26년 순마진 (IB 차감 후)</div><div class="kpi-val" style="color:var(--green)">${fmt(net26)}</div><div class="kpi-sub neu">총마진 ${fmt(mar26)}</div></div>
+    `;
+
+    // 본부별 집계 테이블
+    const HQS=['보안사업본부','이노베이션사업본부','연구개발본부','전략사업본부'];
+    const hqMap={};
+    HQS.forEach(h=>{hqMap[h]={mar25:0,ib25:0,mar26:0,ib26:0};});
+
+    raw.filter(r=>r['상태']==='100%(Invoice)').forEach(r=>{
+      const hq=cleanHq(r['지원 본부']);
+      if(!hqMap[hq]) return;
+      const yr=String(r['회계년도']);
+      const mar=parseFloat(r['예상 마진'])||0;
+      if(yr==='2025'){hqMap[hq].mar25+=mar;hqMap[hq].ib25+=parseFloat(r['IB(-)'])||0;}
+      else if(yr==='2026'){hqMap[hq].mar26+=mar;hqMap[hq].ib26+=parseFloat(r['Interbilling'])||0;}
+    });
+
+    const htb=document.getElementById('ibHqTable');
+    htb.innerHTML='';
+    let totM25=0,totI25=0,totM26=0,totI26=0;
+    HQS.forEach(hq=>{
+      const d=hqMap[hq];
+      const n25=d.mar25-d.ib25, n26=d.mar26-d.ib26;
+      totM25+=d.mar25;totI25+=d.ib25;totM26+=d.mar26;totI26+=d.ib26;
+      const isStrategic=hq==='전략사업본부';
+      htb.innerHTML+=`<tr>
+        <td class="txt" style="font-weight:500">${hq}</td>
+        <td>${fmt(d.mar25)}</td>
+        <td style="color:var(--red)">${d.ib25?fmt(d.ib25):'—'}</td>
+        <td style="color:var(--green);font-weight:600">${fmt(n25)}</td>
+        <td>${fmt(d.mar26)}</td>
+        <td style="color:var(--red)">${d.ib26?fmt(d.ib26):'—'}</td>
+        <td style="color:var(--green);font-weight:600">${isStrategic?'<span style="color:var(--muted);font-size:10px;">수취IB 별도집계예정</span>':fmt(n26)}</td>
+      </tr>`;
+    });
+    htb.innerHTML+=`<tr>
+      <td class="txt">합계</td>
+      <td>${fmt(totM25)}</td><td style="color:var(--red)">${fmt(totI25)}</td><td style="color:var(--green);font-weight:700">${fmt(totM25-totI25)}</td>
+      <td>${fmt(totM26)}</td><td style="color:var(--red)">${fmt(totI26)}</td><td style="color:var(--green);font-weight:700">${fmt(totM26-totI26)}</td>
+    </tr>`;
+
+    renderIbList();
+  }catch(e){
+    console.error('IB 로드 실패',e);
+  }
+}
+
+loadIb();
 </script>
 </body>
 </html>
