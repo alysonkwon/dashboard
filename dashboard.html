@@ -146,7 +146,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <button class="tab" onclick="switchTab('pipeline')">파이프라인</button>
     <button class="tab" onclick="switchTab('vendor')">벤더 분석</button>
     <button class="tab" onclick="switchTab('ib')">인터빌링</button>
-    <button class="tab" onclick="switchTab('price')">벤더 단가</button>
   </div>
 
   <!-- 전체 요약 -->
@@ -285,23 +284,56 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
   <!-- 벤더 -->
   <div class="panel" id="panel-vendor">
-    <div class="card">
-      <div class="card-title">Vendor별 연간 마진 — 2025 vs 2026</div>
-      <div id="vendorChart"></div>
-      <div class="legend-row">
-        <div class="leg"><div class="leg-dot" style="background:var(--accent)"></div>2025년</div>
-        <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>2026년 (실적 기준)</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Vendor별 연간 마진 — 2025 vs 2026</div>
+        <div id="vendorChart"></div>
+        <div class="legend-row">
+          <div class="leg"><div class="leg-dot" style="background:var(--accent)"></div>2025년</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>2026년 (실적 기준)</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Vendor YoY 상세</div>
+        <table class="tbl">
+          <thead><tr>
+            <th style="text-align:left;">Vendor</th>
+            <th>25년 마진</th><th>26년 마진</th><th>증감</th><th>YoY</th>
+          </tr></thead>
+          <tbody id="vendorTable"></tbody>
+        </table>
       </div>
     </div>
+
+    <!-- 단가 인상률 -->
     <div class="card">
-      <div class="card-title">Vendor YoY 상세</div>
-      <table class="tbl">
-        <thead><tr>
-          <th style="text-align:left;">Vendor</th>
-          <th>25년 마진</th><th>26년 마진</th><th>증감</th><th>YoY</th>
-        </tr></thead>
-        <tbody id="vendorTable"></tbody>
-      </table>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:0;">Vendor별 평균 매입단가 인상률</div>
+        <div id="priceSummary"></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span class="filter-label">Vendor</span>
+          <div class="filter-wrap" id="priceVendorFilter" style="flex-wrap:wrap;max-width:500px;"></div>
+          <button class="reset-btn" onclick="resetPriceFilters()">전체 선택</button>
+        </div>
+      </div>
+      <div class="grid2" style="margin-bottom:14px;">
+        <div id="priceChart"></div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th style="text-align:left;">Vendor</th>
+              <th style="text-align:left;">제품</th>
+              <th style="text-align:right;">2024년</th>
+              <th style="text-align:right;">2025년</th>
+              <th style="text-align:center;">24→25</th>
+              <th style="text-align:right;">2026년</th>
+              <th style="text-align:center;">25→26</th>
+            </tr></thead>
+            <tbody id="priceTable"></tbody>
+          </table>
+          <div id="priceEmpty" style="text-align:center;padding:24px;color:var(--muted);font-size:13px;display:none;">데이터가 없어요</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -366,39 +398,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     </div>
   </div>
 
-  <!-- 벤더 단가 -->
-  <div class="panel" id="panel-price">
-    <div class="kpi-grid" id="priceKpi"></div>
-    <div class="card" style="padding:14px 18px;">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span class="filter-label">Vendor</span>
-        <div class="filter-wrap" id="priceVendorFilter" style="flex-wrap:wrap;max-width:700px;"></div>
-        <button class="reset-btn" onclick="resetPriceFilters()">전체 선택</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Vendor별 평균 매입단가 YoY</div>
-      <div id="priceChart"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Vendor · 제품별 평균 매입단가 상세</div>
-      <div style="overflow-x:auto;">
-        <table class="tbl">
-          <thead><tr>
-            <th style="text-align:left;">Vendor</th>
-            <th style="text-align:left;">제품</th>
-            <th style="text-align:right;">2024년 평균단가</th>
-            <th style="text-align:right;">2025년 평균단가</th>
-            <th style="text-align:center;">24→25</th>
-            <th style="text-align:right;">2026년 평균단가</th>
-            <th style="text-align:center;">25→26</th>
-          </tr></thead>
-          <tbody id="priceTable"></tbody>
-        </table>
-      </div>
-      <div id="priceEmpty" style="text-align:center;padding:24px;color:var(--muted);font-size:13px;display:none;">데이터가 없어요</div>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -472,7 +471,7 @@ function fmtDate(val){
 
 function switchTab(name){
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['summary','yoy','pipeline','vendor','ib','price'][i]===name);
+    t.classList.toggle('active',['summary','yoy','pipeline','vendor','ib'][i]===name);
   });
   document.querySelectorAll('.panel').forEach(p=>{
     p.classList.toggle('active',p.id==='panel-'+name);
@@ -1295,16 +1294,15 @@ function renderPriceTable(){
   const oa45=vAvg(avg45.filter(x=>x!==null));
   const oa56=vAvg(avg56.filter(x=>x!==null));
   function kpiRate(r){
-    if(r===null) return '<span style="color:var(--muted);">—</span>';
+    if(r===null) return '—';
     const c=r>0?'var(--red)':r<0?'var(--green)':'var(--muted)';
-    return `<span style="color:${c}">${r>0?'+':''}${r}%</span>`;
+    return `<span style="color:${c};font-weight:600;">${r>0?'+':''}${r}%</span>`;
   }
-  const kpiEl=document.getElementById('priceKpi');
-  if(kpiEl) kpiEl.innerHTML=`
-    <div class="kpi"><div class="kpi-label">분석 Vendor 수</div><div class="kpi-val" style="color:var(--accent)">${vendors.length}개</div><div class="kpi-sub neu">필터 기준</div></div>
-    <div class="kpi"><div class="kpi-label">평균 인상률 24→25</div><div class="kpi-val">${kpiRate(oa45)}</div><div class="kpi-sub neu">전 Vendor 평균</div></div>
-    <div class="kpi"><div class="kpi-label">평균 인상률 25→26</div><div class="kpi-val">${kpiRate(oa56)}</div><div class="kpi-sub neu">전 Vendor 평균</div></div>
-    <div class="kpi"><div class="kpi-label">분석 제품 수</div><div class="kpi-val" style="color:var(--accent)">${rows.length}개</div><div class="kpi-sub neu">Vendor·제품 조합</div></div>
+  // 카드 상단 요약 표시
+  const summaryEl=document.getElementById('priceSummary');
+  if(summaryEl) summaryEl.innerHTML=`
+    <span style="font-size:10pt;color:var(--muted);">Vendor ${vendors.length}개 · 제품 ${rows.length}개 분석</span>
+    <span style="font-size:10pt;color:var(--muted);margin-left:16px;">24→25 평균 ${kpiRate(oa45)} &nbsp;·&nbsp; 25→26 평균 ${kpiRate(oa56)}</span>
   `;
 }
 
