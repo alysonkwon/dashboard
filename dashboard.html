@@ -475,8 +475,6 @@ async function loadData(){
     let targetSheet = [];
     try { targetSheet = await fetchSheet('타겟'); } catch(e) { console.warn('타겟 시트 로드 실패:', e); }
 
-    const QS=['Q1','Q2','Q3','Q4'];
-
     // 타겟 데이터 파싱
     const tgtMap={};
     if(targetSheet.length > 0){
