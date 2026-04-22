@@ -397,6 +397,19 @@ function hideLoading(){
   document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
+// 차트 인스턴스 관리 (중복 생성 방지)
+const chartInstances={};
+function createChart(id, config){
+  if(chartInstances[id]){
+    chartInstances[id].destroy();
+    delete chartInstances[id];
+  }
+  const canvas=document.getElementById(id);
+  if(!canvas) return;
+  chartInstances[id]=new Chart(canvas, config);
+  return chartInstances[id];
+}
+
 function fmt(n){
   if(n===null||n===undefined||isNaN(n)) return '—';
   const a=Math.abs(n);
@@ -638,7 +651,7 @@ async function loadData(){
         }
       };
       // 26년 분기별 GM 차트 (확정 vs 예측추가분)
-      new Chart(document.getElementById('qChart'),{type:'bar',data:{labels:QS,datasets:[
+      createChart('qChart',{type:'bar',data:{labels:QS,datasets:[
         {label:'확정 (100%)',data:QS.map(q=>+(s26chart[q].invGm/1e8).toFixed(2)),backgroundColor:'rgba(37,99,235,.75)',borderRadius:4,borderSkipped:false},
         {label:'예측 75%↑ 추가',data:QS.map(q=>+(s26chart[q].pipeGm/1e8).toFixed(2)),backgroundColor:'rgba(217,119,6,.5)',borderRadius:4,borderSkipped:false},
       ]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}억`}}}}});
@@ -647,21 +660,19 @@ async function loadData(){
         const pipeQs=['Q1','Q2','Q3','Q4'];
         const pipeQData=pipeQs.map(q=>{
           if(q==='Q1'){
-            // Q1은 확정 Invoice 마진
             const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']==='Q1'&&r['상태']==='100%(Invoice)');
             return +(rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0)/1e8).toFixed(2);
           } else {
-            // Q2~Q4는 75%↑ 예상마진 (75%+90%, Invoice·Lost 제외)
             const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&['75%(Commit)','90%(Won)'].includes(r['상태']));
             return +(rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0)/1e8).toFixed(2);
           }
         });
         const pipeColors=['rgba(37,99,235,.8)','rgba(8,145,178,.65)','rgba(217,119,6,.65)','rgba(22,163,74,.65)'];
-        new Chart(document.getElementById('pipeChart'),{type:'bar',data:{labels:pipeQs,datasets:[
+        createChart('pipeChart',{type:'bar',data:{labels:pipeQs,datasets:[
           {label:'마진',data:pipeQData,backgroundColor:pipeColors,borderRadius:6,borderSkipped:false},
         ]},options:{...chartDefaults,
           plugins:{...chartDefaults.plugins,
-            tooltip:{callbacks:{label:c=>`${c.label==='Q1'?'확정마진':'예상마진'}: ${c.parsed.y}억`}}
+            tooltip:{callbacks:{label:c=>`${c.dataIndex===0?'확정마진':'예상마진'}: ${c.parsed.y}억`}}
           },
           layout:{padding:{top:24}},
           scales:{
@@ -672,27 +683,31 @@ async function loadData(){
           }
         }});
 
-        Chart.register({
-          id:'pipeLabels',
-          afterDatasetsDraw(chart){
-            const ctx=chart.ctx;
-            chart.data.datasets.forEach((ds,i)=>{
-              const meta=chart.getDatasetMeta(i);
-              meta.data.forEach((bar,j)=>{
-                const val=ds.data[j];
-                if(!val) return;
-                const isQ1=j===0;
-                ctx.save();
-                ctx.fillStyle=isQ1?'#2563eb':'#1a1d2e';
-                ctx.font=`${isQ1?'600':'500'} 10pt Noto Sans KR, sans-serif`;
-                ctx.textAlign='center';
-                ctx.textBaseline='bottom';
-                ctx.fillText(val+'억', bar.x, bar.y-4);
-                ctx.restore();
+        // 바 위 레이블 플러그인 (중복 등록 방지)
+        if(!Chart.registry.plugins.get('pipeLabels')){
+          Chart.register({
+            id:'pipeLabels',
+            afterDatasetsDraw(chart){
+              if(chart.canvas.id!=='pipeChart') return;
+              const ctx=chart.ctx;
+              chart.data.datasets.forEach((ds,i)=>{
+                const meta=chart.getDatasetMeta(i);
+                meta.data.forEach((bar,j)=>{
+                  const val=ds.data[j];
+                  if(!val) return;
+                  const isQ1=j===0;
+                  ctx.save();
+                  ctx.fillStyle=isQ1?'#2563eb':'#1a1d2e';
+                  ctx.font=`${isQ1?'600':'500'} 10pt Noto Sans KR, sans-serif`;
+                  ctx.textAlign='center';
+                  ctx.textBaseline='bottom';
+                  ctx.fillText(val+'억', bar.x, bar.y-4);
+                  ctx.restore();
+                });
               });
-            });
-          }
-        });
+            }
+          });
+        }
       }
     },150);
 
