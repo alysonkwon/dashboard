@@ -1309,9 +1309,28 @@ function renderPriceTable(){
 async function loadPrice(){
   try{
     const data=await fetchSheet('RAW_vendor');
-    if(!data.length){console.warn('계약_RAW 시트 데이터 없음');return;}
-    priceRawData=data.filter(r=>r['Vendor']&&r['제품']&&r['매입단가']&&r['계산서 발행년도']);
-    const vendors=[...new Set(priceRawData.map(r=>String(r['Vendor']).trim()))].filter(Boolean).sort();
+    console.log('RAW_vendor 행수:', data.length);
+    if(data.length>0) console.log('RAW_vendor 첫행 키:', Object.keys(data[0]));
+    if(!data.length){console.warn('RAW_vendor 시트 데이터 없음');return;}
+
+    // 컬럼명 공백 제거 후 매핑
+    priceRawData=data.filter(r=>{
+      const vendor=r['Vendor']||r[' Vendor ']||r['vendor']||'';
+      const product=r['제품']||'';
+      const price=r['매입단가']||r[' 매입단가 ']||0;
+      const yr=r['계산서 발행년도']||r[' 계산서 발행년도 ']||'';
+      return vendor&&product&&price&&yr;
+    }).map(r=>({
+      'Vendor': String(r['Vendor']||r[' Vendor ']||'').trim(),
+      '제품': String(r['제품']||'').trim(),
+      '매입단가': parseFloat(String(r['매입단가']||r[' 매입단가 ']||0).replace(/,/g,'')),
+      '계산서 발행년도': String(r['계산서 발행년도']||r[' 계산서 발행년도 ']||'').trim(),
+    }));
+
+    console.log('필터 후 행수:', priceRawData.length);
+
+    const vendors=[...new Set(priceRawData.map(r=>r['Vendor']))].filter(Boolean).sort();
+    console.log('벤더 목록:', vendors);
     priceActiveVendors=new Set(vendors);
     const vFilter=document.getElementById('priceVendorFilter');
     if(vFilter) vFilter.innerHTML=vendors.map(v=>
@@ -1319,7 +1338,7 @@ async function loadPrice(){
     ).join('');
     renderPriceTable();
   }catch(e){
-    console.error('계약_RAW 로드 실패',e);
+    console.error('RAW_vendor 로드 실패',e);
   }
 }</script>
 </body>
