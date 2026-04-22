@@ -454,12 +454,12 @@ async function loadData(){
       fetchSheet('실적_집계'),
       fetchSheet('파이프라인_집계'),
       fetchSheet('RAW'),
-      fetchSheet('타겟')
+      fetchSheet('target')
     ]);
 
     const QS=['Q1','Q2','Q3','Q4'];
 
-    // 타겟 데이터 파싱
+    // target 데이터 파싱
     const tgtMap={};
     targetSheet.forEach(r=>{
       const key=r['구분']||r[Object.keys(r)[0]];
