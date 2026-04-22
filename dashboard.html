@@ -143,7 +143,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <div class="tabs">
     <button class="tab active" onclick="switchTab('summary')">전체 요약</button>
     <button class="tab" onclick="switchTab('yoy')">YoY 분기 비교</button>
-    <button class="tab" onclick="switchTab('pipeline')">Pipeline</button>
+    <button class="tab" onclick="switchTab('pipeline')">파이프라인</button>
     <button class="tab" onclick="switchTab('vendor')">벤더 분석</button>
     <button class="tab" onclick="switchTab('ib')">인터빌링</button>
   </div>
@@ -782,6 +782,7 @@ async function loadData(){
     });
 
     // 예상마진 합계: 75%↑ (75%+90%+100%)
+    const totPcnt=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']!=='0%(Lost)').length;
     const pipe75up=raw.filter(r=>String(r['회계년도'])==='2026'&&['75%(Commit)','90%(Won)','100%(Invoice)'].includes(r['상태']));
     const totPmar=pipe75up.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
     const inv26cnt=pipe26['100%(Invoice)'].cnt;
