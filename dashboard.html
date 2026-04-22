@@ -9,18 +9,16 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#001A3E;
-  --surface:#002D68;
-  --surface2:#003580;
-  --border:#1a3f7a;
-  --text:#E8EDF5;
-  --muted:#6B82A8;
-  --accent:#60A5FA;
-  --accent2:#93C5FD;
-  --green:#4ADE80;
-  --red:#F87171;
-  --amber:#FBBF24;
-  --teal:#2DD4BF;
+  --bg:#f8f9fc;
+  --surface:#ffffff;
+  --surface2:#f1f3f8;
+  --border:#e2e6ef;
+  --text:#1a1d2e;
+  --muted:#8890a8;
+  --accent:#2563eb;
+  --green:#16a34a;
+  --red:#dc2626;
+  --amber:#d97706;
 }
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;min-height:100vh;}
 .container{max-width:1200px;margin:0 auto;padding:20px;}
@@ -117,6 +115,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
 
 .error-msg{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:12px 16px;color:var(--red);font-size:13px;margin:8px 0;}
+.filter-btn{background:transparent;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.filter-btn.active{background:var(--surface);color:var(--text);}
+.filter-btn:hover:not(.active){color:var(--text);}
+.stage-pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500;white-space:nowrap;}
+.pipe-summary-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;}
+.pipe-summary-label{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.pipe-summary-val{font-size:14px;font-weight:600;font-family:'DM Mono',monospace;}
 
 @media(max-width:768px){
   .kpi-grid{grid-template-columns:repeat(2,1fr);}
@@ -215,6 +220,47 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
           <div class="leg"><div class="leg-dot" style="background:rgba(52,211,153,.8)"></div>가중마진</div>
         </div>
       </div>
+    </div>
+
+    <!-- 파이프라인 상세 리스트 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:0;">2026년 파이프라인 상세 리스트</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <!-- 분기 필터 -->
+          <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
+            <button class="filter-btn q-btn active" onclick="setQFilter('전체',this)">전체</button>
+            <button class="filter-btn q-btn" onclick="setQFilter('Q1',this)">Q1</button>
+            <button class="filter-btn q-btn" onclick="setQFilter('Q2',this)">Q2</button>
+            <button class="filter-btn q-btn" onclick="setQFilter('Q3',this)">Q3</button>
+            <button class="filter-btn q-btn" onclick="setQFilter('Q4',this)">Q4</button>
+          </div>
+          <!-- Stage 필터 -->
+          <div style="display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);">
+            <button class="filter-btn s-btn active" onclick="setStageFilter('전체',this)">전체</button>
+            <button class="filter-btn s-btn" onclick="setStageFilter('25% (Pipeline)',this)">25%</button>
+            <button class="filter-btn s-btn" onclick="setStageFilter('50%(Best)',this)">50%</button>
+            <button class="filter-btn s-btn" onclick="setStageFilter('75%(Commit)',this)">75%</button>
+            <button class="filter-btn s-btn" onclick="setStageFilter('90%(Won)',this)">90%</button>
+          </div>
+        </div>
+      </div>
+      <div id="pipeListSummary" style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;"></div>
+      <div style="overflow-x:auto;">
+        <table class="tbl" id="pipeListTable">
+          <thead><tr>
+            <th style="text-align:left;">고객사명</th>
+            <th style="text-align:left;">프로젝트명</th>
+            <th>Stage</th>
+            <th>분기</th>
+            <th>마감일자</th>
+            <th>계약금액</th>
+            <th>예상마진</th>
+          </tr></thead>
+          <tbody id="pipeListBody"></tbody>
+        </table>
+      </div>
+      <div id="pipeListEmpty" style="text-align:center;padding:24px;color:var(--muted);font-size:13px;display:none;">해당 조건의 데이터가 없어요</div>
     </div>
   </div>
 
@@ -565,9 +611,104 @@ function renderVendor(vendorMap) {
   });
 }
 
+// 파이프라인 리스트
+let pipeRawData = [];
+let currentQFilter = '전체';
+let currentStageFilter = '전체';
+
+const STAGE_COLORS = {
+  '25% (Pipeline)': {bg:'rgba(79,142,247,.15)',color:'#60A5FA'},
+  '50%(Best)':      {bg:'rgba(45,212,191,.15)',color:'#2dd4bf'},
+  '75%(Commit)':    {bg:'rgba(251,191,36,.15)',color:'#fbbf24'},
+  '90%(Won)':       {bg:'rgba(52,211,153,.15)',color:'#34d399'},
+};
+
+function setQFilter(val, btn) {
+  currentQFilter = val;
+  document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPipeList();
+}
+
+function setStageFilter(val, btn) {
+  currentStageFilter = val;
+  document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPipeList();
+}
+
+function renderPipeList() {
+  let filtered = pipeRawData.filter(r => {
+    const qOk = currentQFilter === '전체' || r['회계분기'] === currentQFilter;
+    const sOk = currentStageFilter === '전체' || r['상태'] === currentStageFilter;
+    return qOk && sOk;
+  });
+
+  // 요약
+  const totalCnt = filtered.length;
+  const totalRev = filtered.reduce((s, r) => s + (parseFloat(r['계약 금액']) || 0), 0);
+  const totalMar = filtered.reduce((s, r) => s + (parseFloat(r['예상 마진']) || 0), 0);
+  document.getElementById('pipeListSummary').innerHTML = `
+    <div class="pipe-summary-item"><div class="pipe-summary-label">건수</div><div class="pipe-summary-val">${totalCnt}건</div></div>
+    <div class="pipe-summary-item"><div class="pipe-summary-label">계약금액 합계</div><div class="pipe-summary-val" style="color:var(--accent)">${fmt(totalRev)}</div></div>
+    <div class="pipe-summary-item"><div class="pipe-summary-label">예상마진 합계</div><div class="pipe-summary-val" style="color:var(--green)">${fmt(totalMar)}</div></div>
+  `;
+
+  // 테이블
+  const tbody = document.getElementById('pipeListBody');
+  const empty = document.getElementById('pipeListEmpty');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // 마감일자 기준 정렬
+  filtered.sort((a, b) => {
+    const da = a['마감일자'] ? new Date(a['마감일자']) : new Date('9999');
+    const db = b['마감일자'] ? new Date(b['마감일자']) : new Date('9999');
+    return da - db;
+  });
+
+  tbody.innerHTML = filtered.map(r => {
+    const stage = r['상태'] || '—';
+    const sc = STAGE_COLORS[stage] || {bg:'rgba(90,99,128,.15)',color:'var(--muted)'};
+    const dateStr = r['마감일자'] ? String(r['마감일자']).slice(0, 10) : '—';
+    const rev = parseFloat(r['계약 금액']) || 0;
+    const mar = parseFloat(r['예상 마진']) || 0;
+    return `<tr>
+      <td style="font-family:'DM Sans';color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;">${r['고객사명'] || '—'}</td>
+      <td style="font-family:'DM Sans';color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r['프로젝트명'] || '—'}</td>
+      <td><span class="stage-pill" style="background:${sc.bg};color:${sc.color}">${stage}</span></td>
+      <td style="color:var(--muted)">${r['회계분기'] || '—'}</td>
+      <td style="color:var(--muted)">${dateStr}</td>
+      <td class="${rev < 0 ? 'red' : ''}">${fmt(rev)}</td>
+      <td class="${mar < 0 ? 'red' : 'grn'}">${fmt(mar)}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadPipeList() {
+  try {
+    const raw = await fetchSheet('RAW');
+    pipeRawData = raw.filter(r =>
+      String(r['회계년도']) === '2026' &&
+      r['상태'] !== '100%(Invoice)' &&
+      r['상태'] !== '0%(Lost)' &&
+      r['상태'] != null
+    );
+    renderPipeList();
+  } catch(e) {
+    document.getElementById('pipeListBody').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">리스트 로드 실패</td></tr>`;
+  }
+}
+
 // 실행
 loadFX();
 loadData();
+loadPipeList();
 setInterval(loadFX, 60000);
 </script>
 </body>
