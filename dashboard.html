@@ -143,7 +143,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <div class="tabs">
     <button class="tab active" onclick="switchTab('summary')">전체 요약</button>
     <button class="tab" onclick="switchTab('yoy')">YoY 분기 비교</button>
-    <button class="tab" onclick="switchTab('pipeline')">파이프라인</button>
+    <button class="tab" onclick="switchTab('pipeline')">Pipeline</button>
     <button class="tab" onclick="switchTab('vendor')">벤더 분석</button>
     <button class="tab" onclick="switchTab('ib')">인터빌링</button>
   </div>
@@ -768,13 +768,15 @@ async function loadData(){
 
     const totPipe=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']!=='0%(Lost)');
     const totPcnt=totPipe.length;
-    const totPmar=totPipe.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    // 예상마진 합계: 50%↑ (50%+75%+90%+100%)
+    const pipe50up=raw.filter(r=>String(r['회계년도'])==='2026'&&['50%(Best)','75%(Commit)','90%(Won)','100%(Invoice)'].includes(r['상태']));
+    const totPmar=pipe50up.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
     const inv26cnt=pipe26['100%(Invoice)'].cnt;
     const won26cnt=pipe26['90%(Won)'].cnt;
 
     document.getElementById('pipeKpi').innerHTML=`
       <div class="kpi"><div class="kpi-label">전체 (Lost 제외)</div><div class="kpi-val" style="color:var(--accent)">${totPcnt}건</div><div class="kpi-sub neu">2026년 전체</div></div>
-      <div class="kpi"><div class="kpi-label">예상마진 합계</div><div class="kpi-val">${fmt(totPmar)}</div><div class="kpi-sub neu">전체 Stage</div></div>
+      <div class="kpi"><div class="kpi-label">예상마진 합계 (50%↑)</div><div class="kpi-val">${fmt(totPmar)}</div><div class="kpi-sub neu">50%↑ 기준</div></div>
       <div class="kpi"><div class="kpi-label">100% Invoice</div><div class="kpi-val" style="color:var(--green)">${inv26cnt}건</div><div class="kpi-sub neu">${fmt(pipe26['100%(Invoice)'].pmar)}</div></div>
       <div class="kpi"><div class="kpi-label">90% Won</div><div class="kpi-val" style="color:var(--amber)">${won26cnt}건</div><div class="kpi-sub neu">${fmt(pipe26['90%(Won)'].pmar)}</div></div>
     `;
