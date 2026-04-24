@@ -194,12 +194,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       <div style="overflow-x:auto;">
         <table class="tbl">
           <thead><tr>
-            <th style="text-align:left;">분기</th>
-            <th style="text-align:right;">Target GM</th>
-            <th style="text-align:right;">Revenue</th>
-            <th style="text-align:right;">GM</th>
-            <th style="text-align:right;">GM(±IB)</th>
-            <th style="text-align:right;">GM 달성율</th>
+            <th style="text-align:center;">분기</th>
+            <th style="text-align:center;">Target GM</th>
+            <th style="text-align:center;">Revenue</th>
+            <th style="text-align:center;">GM</th>
+            <th style="text-align:center;">GM(±IB)</th>
+            <th style="text-align:center;">GM 달성율</th>
             <th style="text-align:center;">비고</th>
           </tr></thead>
           <tbody id="summaryBody"></tbody>
@@ -674,11 +674,11 @@ async function loadData(){
           :`<span style="color:var(--muted);">—</span>`;
       const rowBg=d.isConfirmed?'rgba(37,99,235,.02)':'rgba(217,119,6,.02)';
       tbody.innerHTML+=`<tr style="background:${rowBg};">
-        <td class="txt">${q}</td>
-        <td style="color:var(--muted);text-align:center;">${tq.gm?fmt(tq.gm):'—'}</td>
-        <td>${d.rev?fmt(d.rev):'—'}</td>
-        <td>${d.gm?fmt(d.gm):'—'}</td>
-        <td style="color:var(--green);">${d.gm?fmt(gmIb):'—'}</td>
+        <td style="text-align:center;font-family:'Noto Sans KR',sans-serif;font-weight:500;">${q}</td>
+        <td style="text-align:center;color:var(--muted);">${tq.gm?fmt(tq.gm):'—'}</td>
+        <td style="text-align:center;">${d.rev?fmt(d.rev):'—'}</td>
+        <td style="text-align:center;">${d.gm?fmt(d.gm):'—'}</td>
+        <td style="text-align:center;color:var(--green);">${d.gm?fmt(gmIb):'—'}</td>
         <td style="text-align:center;">${achvStr}</td>
         <td style="text-align:center;">${badge}</td>
       </tr>`;
@@ -690,11 +690,11 @@ async function loadData(){
     const gm26Achv=t26.gm?tot75gmIb/t26.gm*100:null;
     const yoyGm75=pct(tot75gm,s25.gm);
     tbody.innerHTML+=`<tr style="border-top:2px solid var(--border);background:rgba(37,99,235,.03);">
-      <td class="txt" style="font-weight:700;">합계</td>
-      <td style="color:var(--muted);font-weight:700;text-align:center;">${t26.gm?fmt(t26.gm):'—'}</td>
-      <td style="font-weight:700;">${fmt(tot75rev)}</td>
-      <td style="font-weight:700;">${fmt(tot75gm)}</td>
-      <td style="color:var(--green);font-weight:700;">${fmt(tot75gmIb)}</td>
+      <td style="text-align:center;font-family:'Noto Sans KR',sans-serif;font-weight:700;">합계</td>
+      <td style="text-align:center;color:var(--muted);font-weight:700;">${t26.gm?fmt(t26.gm):'—'}</td>
+      <td style="text-align:center;font-weight:700;">${fmt(tot75rev)}</td>
+      <td style="text-align:center;font-weight:700;">${fmt(tot75gm)}</td>
+      <td style="text-align:center;color:var(--green);font-weight:700;">${fmt(tot75gmIb)}</td>
       <td style="text-align:center;">${gm26Achv!==null?`<span style="color:${achvColor(gm26Achv)};font-weight:700;">${gm26Achv.toFixed(1)}%</span>`:'—'}</td>
       <td style="text-align:center;font-size:10pt;color:${(yoyGm75||0)>=0?'var(--green)':'var(--red)'};font-weight:600;">YoY ${sign(yoyGm75||0)}${(yoyGm75||0).toFixed(1)}%</td>
     </tr>`;
