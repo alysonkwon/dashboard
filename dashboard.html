@@ -1096,43 +1096,71 @@ function renderYoyType(){
 // ── 게이지 차트 ───────────────────────────────────
 let gaugeData={};
 
-function drawGauge(svgId, pct, color){
+function drawGauge(svgId, pct, _color){
   const svg=document.getElementById(svgId);
   if(!svg) return;
-  const cx=100, cy=100, r=80;
-  const clampedPct=Math.min(pct, 150); // 최대 150%까지 표시
-  const angle=-180 + (clampedPct/100)*180;
-  const rad=angle*Math.PI/180;
-  const ex=cx+r*Math.cos(rad);
-  const ey=cy+r*Math.sin(rad);
+  const cx=100, cy=100, r=78;
+  const MAX=120; // 게이지 최대 표시 범위
 
-  // 배경 호 (회색)
-  const bgPath=`M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`;
-  // 달성 호
-  const large=clampedPct>=100?1:0;
-  const fillPath=`M ${cx-r} ${cy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
+  // 바늘은 최대 120%에서 멈춤
+  const needlePct=Math.min(pct, MAX);
+  const needleAngle=-180 + (needlePct/MAX)*180;
+  const needleRad=needleAngle*Math.PI/180;
 
-  // 눈금 (0%, 25%, 50%, 75%, 100%)
-  const ticks=[0,25,50,75,100].map(p=>{
-    const a=(-180+(p/100)*180)*Math.PI/180;
-    const x1=cx+(r-8)*Math.cos(a), y1=cy+(r-8)*Math.sin(a);
-    const x2=cx+(r+2)*Math.cos(a), y2=cy+(r+2)*Math.sin(a);
-    const tx=cx+(r-20)*Math.cos(a), ty=cy+(r-20)*Math.sin(a);
-    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#e2e6ef" stroke-width="1.5"/>
-            <text x="${tx.toFixed(1)}" y="${(ty+3).toFixed(1)}" text-anchor="middle" font-size="8" fill="#8890a8">${p}%</text>`;
+  // 호 그리기 함수 (MAX 기준)
+  function arcPath(startPct, endPct){
+    const sa=(-180+(startPct/MAX)*180)*Math.PI/180;
+    const ea=(-180+(endPct/MAX)*180)*Math.PI/180;
+    const x1=cx+r*Math.cos(sa), y1=cy+r*Math.sin(sa);
+    const x2=cx+r*Math.cos(ea), y2=cy+r*Math.sin(ea);
+    const large=(endPct-startPct)/MAX>0.5?1:0;
+    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+  }
+
+  // 5구간 색상 (100~120 초록 진하게)
+  const segments=[
+    {from:0,   to:25,  color:'#dc2626'},
+    {from:25,  to:50,  color:'#f97316'},
+    {from:50,  to:75,  color:'#eab308'},
+    {from:75,  to:100, color:'#16a34a'},
+    {from:100, to:120, color:'#15803d'},
+  ];
+
+  const arcs=segments.map(s=>
+    `<path d="${arcPath(s.from,s.to)}" fill="none" stroke="${s.color}" stroke-width="14" stroke-linecap="butt" opacity="0.2"/>`
+  ).join('');
+
+  const filledArcs=segments.map(s=>{
+    const fillTo=Math.min(needlePct, s.to);
+    if(fillTo<=s.from) return '';
+    return `<path d="${arcPath(s.from,fillTo)}" fill="none" stroke="${s.color}" stroke-width="14" stroke-linecap="butt" opacity="0.85"/>`;
   }).join('');
 
-  // 바늘
-  const needleRad=rad;
-  const nx=cx+60*Math.cos(needleRad), ny=cy+60*Math.sin(needleRad);
-  const nx2=cx-12*Math.cos(needleRad), ny2=cy-12*Math.sin(needleRad);
+  // 눈금 (0, 25, 50, 75, 100, 120)
+  const ticks=[0,25,50,75,100,120].map(p=>{
+    const a=(-180+(p/MAX)*180)*Math.PI/180;
+    const x1=cx+(r-8)*Math.cos(a),  y1=cy+(r-8)*Math.sin(a);
+    const x2=cx+(r+3)*Math.cos(a),  y2=cy+(r+3)*Math.sin(a);
+    const tx=cx+(r-22)*Math.cos(a), ty=cy+(r-22)*Math.sin(a);
+    const isBold=p===100;
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${isBold?'#16a34a':'#c0c8d8'}" stroke-width="${isBold?2:1.5}"/>
+            <text x="${tx.toFixed(1)}" y="${(ty+3).toFixed(1)}" text-anchor="middle" font-size="8" fill="${isBold?'#16a34a':'#8890a8'}" font-weight="${isBold?'700':'400'}">${p}%</text>`;
+  }).join('');
+
+  // 바늘 색상 (현재 구간 기준)
+  const needleColor=needlePct>=100?'#15803d':needlePct>=75?'#16a34a':needlePct>=50?'#eab308':needlePct>=25?'#f97316':'#dc2626';
+
+  const nx=cx+62*Math.cos(needleRad),  ny=cy+62*Math.sin(needleRad);
+  const nx2=cx-14*Math.cos(needleRad), ny2=cy-14*Math.sin(needleRad);
 
   svg.innerHTML=`
-    <path d="${bgPath}" fill="none" stroke="#e2e6ef" stroke-width="14" stroke-linecap="round"/>
-    <path d="${fillPath}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round" opacity="0.85"/>
+    ${arcs}
+    ${filledArcs}
     ${ticks}
-    <line x1="${nx2.toFixed(1)}" y1="${ny2.toFixed(1)}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#1a1d2e" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="${cx}" cy="${cy}" r="5" fill="#1a1d2e"/>
+    <line x1="${nx2.toFixed(1)}" y1="${ny2.toFixed(1)}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}"
+      stroke="${needleColor}" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="${needleColor}"/>
+    <circle cx="${cx}" cy="${cy}" r="2.5" fill="#fff"/>
   `;
 }
 
