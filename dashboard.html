@@ -279,6 +279,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.85)"></div>26년 New</div>
         <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.3)"></div>25년 Renewal</div>
         <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.85)"></div>26년 Renewal</div>
+        <div class="leg"><div style="width:20px;height:2px;background:rgba(37,99,235,.9);border-radius:2px;"></div>New 추세</div>
+        <div class="leg"><div style="width:20px;height:2px;background:rgba(22,163,74,.9);border-radius:2px;"></div>Renewal 추세</div>
       </div>
       <div style="overflow-x:auto;">
         <table class="tbl" id="yoyTypeTable">
@@ -1085,14 +1087,21 @@ function renderYoyType(){
   const gmData26=TYPES.map(t=>(data['2026'][t].gm/1e8).toFixed(2)*1);
 
   createChart('yoyTypeRevChart',{type:'bar',data:{labels,datasets:[
-    {label:'25년',data:revData25,backgroundColor:['rgba(37,99,235,.3)','rgba(22,163,74,.3)'],borderRadius:4,borderSkipped:false},
-    {label:'26년',data:revData26,backgroundColor:['rgba(37,99,235,.85)','rgba(22,163,74,.85)'],borderRadius:4,borderSkipped:false},
-  ]},options:chartOpts});
+    // 막대
+    {type:'bar',label:'25년 Revenue',data:revData25,backgroundColor:['rgba(37,99,235,.3)','rgba(22,163,74,.3)'],borderRadius:4,borderSkipped:false,order:2},
+    {type:'bar',label:'26년 Revenue',data:revData26,backgroundColor:['rgba(37,99,235,.85)','rgba(22,163,74,.85)'],borderRadius:4,borderSkipped:false,order:2},
+    // 꺾은선 - New (파랑)
+    {type:'line',label:'New 추세',data:[revData25[0],revData26[0]],borderColor:'rgba(37,99,235,.9)',backgroundColor:'rgba(37,99,235,.9)',borderWidth:2,pointRadius:4,pointHoverRadius:6,tension:0,borderDash:[],fill:false,order:1},
+    // 꺾은선 - Renewal (초록)
+    {type:'line',label:'Renewal 추세',data:[revData25[1],revData26[1]],borderColor:'rgba(22,163,74,.9)',backgroundColor:'rgba(22,163,74,.9)',borderWidth:2,pointRadius:4,pointHoverRadius:6,tension:0,fill:false,order:1},
+  ]},options:{...chartOpts,plugins:{...chartOpts.plugins,legend:{display:false}}}});
 
   createChart('yoyTypeGmChart',{type:'bar',data:{labels,datasets:[
-    {label:'25년',data:gmData25,backgroundColor:['rgba(37,99,235,.3)','rgba(22,163,74,.3)'],borderRadius:4,borderSkipped:false},
-    {label:'26년',data:gmData26,backgroundColor:['rgba(37,99,235,.85)','rgba(22,163,74,.85)'],borderRadius:4,borderSkipped:false},
-  ]},options:chartOpts});
+    {type:'bar',label:'25년 GM',data:gmData25,backgroundColor:['rgba(37,99,235,.3)','rgba(22,163,74,.3)'],borderRadius:4,borderSkipped:false,order:2},
+    {type:'bar',label:'26년 GM',data:gmData26,backgroundColor:['rgba(37,99,235,.85)','rgba(22,163,74,.85)'],borderRadius:4,borderSkipped:false,order:2},
+    {type:'line',label:'New 추세',data:[gmData25[0],gmData26[0]],borderColor:'rgba(37,99,235,.9)',backgroundColor:'rgba(37,99,235,.9)',borderWidth:2,pointRadius:4,pointHoverRadius:6,tension:0,fill:false,order:1},
+    {type:'line',label:'Renewal 추세',data:[gmData25[1],gmData26[1]],borderColor:'rgba(22,163,74,.9)',backgroundColor:'rgba(22,163,74,.9)',borderWidth:2,pointRadius:4,pointHoverRadius:6,tension:0,fill:false,order:1},
+  ]},options:{...chartOpts,plugins:{...chartOpts.plugins,legend:{display:false}}}});
 }
 
 // ── 게이지 차트 ───────────────────────────────────
