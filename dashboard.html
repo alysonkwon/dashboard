@@ -166,7 +166,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
           <button class="f-btn gauge-btn" data-val="Q4" onclick="switchGauge(this)">Q4</button>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="gaugeWrap">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;" id="gaugeWrap">
         <div style="text-align:center;">
           <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">Revenue 달성율</div>
           <svg id="gaugeRev" viewBox="0 0 200 110" style="width:100%;max-width:260px;"></svg>
@@ -178,6 +178,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
           <svg id="gaugeGm" viewBox="0 0 200 110" style="width:100%;max-width:260px;"></svg>
           <div id="gaugeGmLabel" style="font-size:14pt;font-weight:700;font-family:'DM Mono',monospace;margin-top:-8px;"></div>
           <div id="gaugeGmSub" style="font-size:10pt;color:var(--muted);margin-top:4px;"></div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">GM(±IB) 달성율</div>
+          <svg id="gaugeGmIb" viewBox="0 0 200 110" style="width:100%;max-width:260px;"></svg>
+          <div id="gaugeGmIbLabel" style="font-size:14pt;font-weight:700;font-family:'DM Mono',monospace;margin-top:-8px;"></div>
+          <div id="gaugeGmIbSub" style="font-size:10pt;color:var(--muted);margin-top:4px;"></div>
         </div>
       </div>
     </div>
@@ -1161,20 +1167,34 @@ function renderGauge(selected){
   const revPct=tgtRev?actRev/tgtRev*100:0;
   const gmPct=tgtGm?actGm/tgtGm*100:0;
 
+  // IB 계산
+  const ibRows=selected==='전체'
+    ? raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']==='100%(Invoice)')
+    : raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===selected&&r['상태']==='100%(Invoice)');
+  const actIb=ibRows.reduce((s,r)=>s+(parseFloat(r['Interbilling'])||0),0);
+  const actGmIb=actGm-actIb;
+  const gmIbPct=tgtGm?actGmIb/tgtGm*100:0;
+
   function gaugeColor(p){return p>=100?'#16a34a':p>=80?'#d97706':'#dc2626';}
 
-  drawGauge('gaugeRev', revPct, gaugeColor(revPct));
-  drawGauge('gaugeGm',  gmPct,  gaugeColor(gmPct));
+  drawGauge('gaugeRev',   revPct,   gaugeColor(revPct));
+  drawGauge('gaugeGm',    gmPct,    gaugeColor(gmPct));
+  drawGauge('gaugeGmIb',  gmIbPct,  gaugeColor(gmIbPct));
 
   document.getElementById('gaugeRevLabel').innerHTML=
     `<span style="color:${gaugeColor(revPct)}">${tgtRev?revPct.toFixed(1)+'%':'타겟 미입력'}</span>`;
   document.getElementById('gaugeRevSub').textContent=
-    tgtRev?`${fmt(actRev)} / ${fmt(tgtRev)}`:label;
+    tgtRev?`${fmt(actRev)} / ${fmt(tgtRev)}`:'';
 
   document.getElementById('gaugeGmLabel').innerHTML=
     `<span style="color:${gaugeColor(gmPct)}">${tgtGm?gmPct.toFixed(1)+'%':'타겟 미입력'}</span>`;
   document.getElementById('gaugeGmSub').textContent=
-    tgtGm?`${fmt(actGm)} / ${fmt(tgtGm)}`:label;
+    tgtGm?`${fmt(actGm)} / ${fmt(tgtGm)}`:'';
+
+  document.getElementById('gaugeGmIbLabel').innerHTML=
+    `<span style="color:${gaugeColor(gmIbPct)}">${tgtGm?gmIbPct.toFixed(1)+'%':'타겟 미입력'}</span>`;
+  document.getElementById('gaugeGmIbSub').textContent=
+    tgtGm?`${fmt(actGmIb)} / ${fmt(tgtGm)}`:'';
 }
 
 // ── 파이프라인 리스트 ──────────────────────────────
