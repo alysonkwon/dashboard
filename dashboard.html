@@ -664,20 +664,21 @@ async function loadData(){
     QS.forEach(q=>{
       const d=s26q[q];
       const tq=getTgt(`2026_${q}`);
-      const gmAchv=tq.gm?d.gm/tq.gm*100:null;
+      const gmIb=d.gm-d.ib;
+      const gmAchv=tq.gm?gmIb/tq.gm*100:null;
       const achvStr=gmAchv!==null?`<span style="color:${achvColor(gmAchv)};font-weight:700;">${gmAchv.toFixed(1)}%</span>`:'—';
       const badge=d.isConfirmed
-        ?`<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(37,99,235,.1);color:var(--accent);">확정</span>`
+        ?`<span style="font-family:'Noto Sans KR',sans-serif;font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(37,99,235,.1);color:var(--accent);">확정</span>`
         :d.invCnt>0||d.pipeCnt>0
-          ?`<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(217,119,6,.1);color:var(--amber);">예측</span>`
-          :`<span style="font-size:10px;color:var(--muted);">—</span>`;
+          ?`<span style="font-family:'Noto Sans KR',sans-serif;font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(217,119,6,.1);color:var(--amber);">예측</span>`
+          :`<span style="color:var(--muted);">—</span>`;
       const rowBg=d.isConfirmed?'rgba(37,99,235,.02)':'rgba(217,119,6,.02)';
       tbody.innerHTML+=`<tr style="background:${rowBg};">
         <td class="txt">${q}</td>
-        <td style="color:var(--muted);">${tq.gm?fmt(tq.gm):'—'}</td>
+        <td style="color:var(--muted);text-align:center;">${tq.gm?fmt(tq.gm):'—'}</td>
         <td>${d.rev?fmt(d.rev):'—'}</td>
         <td>${d.gm?fmt(d.gm):'—'}</td>
-        <td style="color:var(--green);">${d.gm?fmt(d.gm-d.ib):'—'}</td>
+        <td style="color:var(--green);">${d.gm?fmt(gmIb):'—'}</td>
         <td style="text-align:center;">${achvStr}</td>
         <td style="text-align:center;">${badge}</td>
       </tr>`;
@@ -685,14 +686,15 @@ async function loadData(){
     const tot75rev=QS.reduce((s,q)=>s+s26q[q].rev,0);
     const tot75gm=QS.reduce((s,q)=>s+s26q[q].gm,0);
     const tot75ib=QS.reduce((s,q)=>s+s26q[q].ib,0);
-    const gm26Achv=t26.gm?tot75gm/t26.gm*100:null;
+    const tot75gmIb=tot75gm-tot75ib;
+    const gm26Achv=t26.gm?tot75gmIb/t26.gm*100:null;
     const yoyGm75=pct(tot75gm,s25.gm);
     tbody.innerHTML+=`<tr style="border-top:2px solid var(--border);background:rgba(37,99,235,.03);">
       <td class="txt" style="font-weight:700;">합계</td>
-      <td style="color:var(--muted);font-weight:700;">${t26.gm?fmt(t26.gm):'—'}</td>
+      <td style="color:var(--muted);font-weight:700;text-align:center;">${t26.gm?fmt(t26.gm):'—'}</td>
       <td style="font-weight:700;">${fmt(tot75rev)}</td>
       <td style="font-weight:700;">${fmt(tot75gm)}</td>
-      <td style="color:var(--green);font-weight:700;">${fmt(tot75gm-tot75ib)}</td>
+      <td style="color:var(--green);font-weight:700;">${fmt(tot75gmIb)}</td>
       <td style="text-align:center;">${gm26Achv!==null?`<span style="color:${achvColor(gm26Achv)};font-weight:700;">${gm26Achv.toFixed(1)}%</span>`:'—'}</td>
       <td style="text-align:center;font-size:10pt;color:${(yoyGm75||0)>=0?'var(--green)':'var(--red)'};font-weight:600;">YoY ${sign(yoyGm75||0)}${(yoyGm75||0).toFixed(1)}%</td>
     </tr>`;
