@@ -275,10 +275,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         </div>
       </div>
       <div class="legend-row" style="margin-bottom:14px;">
-        <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.7)"></div>25년 New</div>
-        <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.3)"></div>25년 Renewal</div>
-        <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.8)"></div>26년 New</div>
-        <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.35)"></div>26년 Renewal</div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.3)"></div>25년 New</div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.85)"></div>26년 New</div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.3)"></div>25년 Renewal</div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.85)"></div>26년 Renewal</div>
       </div>
       <div style="overflow-x:auto;">
         <table class="tbl" id="yoyTypeTable">
@@ -1085,13 +1085,13 @@ function renderYoyType(){
   const gmData26=TYPES.map(t=>(data['2026'][t].gm/1e8).toFixed(2)*1);
 
   createChart('yoyTypeRevChart',{type:'bar',data:{labels,datasets:[
-    {label:'25년 New / Renewal',data:revData25,backgroundColor:['rgba(37,99,235,.7)','rgba(37,99,235,.3)'],borderRadius:4,borderSkipped:false},
-    {label:'26년 New / Renewal',data:revData26,backgroundColor:['rgba(22,163,74,.8)','rgba(22,163,74,.35)'],borderRadius:4,borderSkipped:false},
+    {label:'25년',data:revData25,backgroundColor:['rgba(37,99,235,.3)','rgba(22,163,74,.3)'],borderRadius:4,borderSkipped:false},
+    {label:'26년',data:revData26,backgroundColor:['rgba(37,99,235,.85)','rgba(22,163,74,.85)'],borderRadius:4,borderSkipped:false},
   ]},options:chartOpts});
 
   createChart('yoyTypeGmChart',{type:'bar',data:{labels,datasets:[
-    {label:'25년 New / Renewal',data:gmData25,backgroundColor:['rgba(37,99,235,.7)','rgba(37,99,235,.3)'],borderRadius:4,borderSkipped:false},
-    {label:'26년 New / Renewal',data:gmData26,backgroundColor:['rgba(22,163,74,.8)','rgba(22,163,74,.35)'],borderRadius:4,borderSkipped:false},
+    {label:'25년',data:gmData25,backgroundColor:['rgba(37,99,235,.3)','rgba(22,163,74,.3)'],borderRadius:4,borderSkipped:false},
+    {label:'26년',data:gmData26,backgroundColor:['rgba(37,99,235,.85)','rgba(22,163,74,.85)'],borderRadius:4,borderSkipped:false},
   ]},options:chartOpts});
 }
 
