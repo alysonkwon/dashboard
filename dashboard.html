@@ -216,7 +216,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <!-- 영업구분별 실적 표 -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-        <div class="card-title" style="margin-bottom:0;">연도 × 영업구분별 실적 (100% 계산서 기준)</div>
+        <div class="card-title" style="margin-bottom:0;">YoY 실적 분석: 신규 vs 리뉴얼</div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span class="filter-label">분기</span>
           <div class="filter-wrap">
@@ -958,15 +958,16 @@ function renderYoyType(){
     const fontW=is26?'700':'400';
     const yrColor=is26?'#1e3a8a':'var(--muted)';
 
-    TYPES.forEach((t,ti)=>{
+      const validTypes=TYPES.filter(t=>data[yr][t].rev||data[yr][t].gm);
+      TYPES.forEach((t,ti)=>{
       const d=data[yr][t];
-      if(!d.rev&&!d.gm) return; // 데이터 없으면 스킵
+      if(!d.rev&&!d.gm) return;
+      const typeIdx=validTypes.indexOf(t);
 
       // YoY 계산
       let yoyStr='';
       if(is26){
         const d25=data['2025'][t];
-        const yRev=d25.rev?((d.rev-d25.rev)/d25.rev*100):null;
         const yGm=d25.gm?((d.gm-d25.gm)/d25.gm*100):null;
         if(yGm!==null){
           const c=yGm>=0?'var(--green)':'var(--red)';
@@ -974,9 +975,9 @@ function renderYoyType(){
         }
       }
 
-      tbody.innerHTML+=`<tr style="background:${rowBg};">
-        ${ti===0?`<td rowspan="${TYPES.filter(t=>data[yr][t].rev||data[yr][t].gm).length}" style="text-align:center;font-weight:${fontW};color:${yrColor};font-size:${is26?'13pt':'11pt'};border-right:2px solid var(--border);vertical-align:middle;">${yr}</td>`:''}
-        <td class="txt" style="font-weight:${fontW};padding-left:16px;">${t}</td>
+      tbody.innerHTML+=`<tr>
+        ${typeIdx===0?`<td rowspan="${validTypes.length+1}" style="text-align:center;font-weight:${fontW};color:${yrColor};font-size:${is26?'13pt':'11pt'};border-right:2px solid var(--border);vertical-align:middle;">${yr}</td>`:''}
+        <td class="txt" style="padding-left:16px;font-weight:${fontW};">${t}</td>
         <td style="font-weight:${fontW};">${d.rev?(d.rev/1e8).toFixed(1)+'억':'—'}</td>
         <td style="font-weight:${fontW};">${d.gm?(d.gm/1e8).toFixed(1)+'억':'—'}</td>
         <td style="color:var(--green);font-weight:${fontW};">${d.gm?(((d.gm-d.ib)/1e8).toFixed(1)+'억'):'—'}</td>
