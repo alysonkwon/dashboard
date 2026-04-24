@@ -328,12 +328,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
           </div>
           <span class="filter-label" style="margin-left:4px;">Stage</span>
           <div class="filter-wrap">
+            <button class="f-btn s-btn" data-val="0%(Lost)" onclick="toggleFilter('s',this)">0%</button>
             <button class="f-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)">25%</button>
             <button class="f-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)">50%</button>
             <button class="f-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)">75%</button>
             <button class="f-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)">90%</button>
             <button class="f-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)">100%</button>
-            <button class="f-btn s-btn" data-val="0%(Lost)" onclick="toggleFilter('s',this)">0% Lost</button>
           </div>
           <span class="filter-label" style="margin-left:4px;">영업구분</span>
           <div class="filter-wrap">
@@ -1239,8 +1239,8 @@ const STAGE_COLORS={
   '50%(Best)':     {bg:'rgba(8,145,178,.1)',   color:'#0891b2'},
   '75%(Commit)':   {bg:'rgba(217,119,6,.1)',   color:'#d97706'},
   '90%(Won)':      {bg:'rgba(22,163,74,.1)',   color:'#16a34a'},
-  '100%(Invoice)': {bg:'rgba(136,144,168,.1)', color:'#8890a8'},
-  '0%(Lost)':      {bg:'rgba(220,38,38,.1)',   color:'#dc2626'},
+  '100%(Invoice)': {bg:'rgba(220,38,38,.1)',   color:'#dc2626'},
+  '0%(Lost)':      {bg:'rgba(136,144,168,.1)', color:'#8890a8'},
 };
 
 function toggleFilter(type,btn){
