@@ -926,7 +926,7 @@ function renderYoyType(){
   tbody.innerHTML='';
   if(yoyTypeRaw.length===0) return;
 
-  const TYPES=['New','Renewal','Renewal(1st)','1time'];
+  const TYPES=['New','Renewal'];
 
   function getIbR(r){
     const yr=String(r['회계년도']);
@@ -934,14 +934,16 @@ function renderYoyType(){
     return parseFloat(r['Interbilling'])||0;
   }
 
-  // 연도×영업구분 집계
+  // 연도×영업구분 집계 (Renewal(1st) → Renewal 합산)
   const data={};
   ['2025','2026'].forEach(yr=>{
     data[yr]={};
     TYPES.forEach(t=>{
+      // Renewal이면 Renewal(1st)도 포함
+      const matchTypes=t==='Renewal'?['Renewal','Renewal(1st)']:[t];
       const rows=yoyTypeRaw.filter(r=>
         String(r['회계년도'])===yr &&
-        r['영업 구분']===t &&
+        matchTypes.includes(r['영업 구분']) &&
         (yoyActiveQ.size===0||yoyActiveQ.has(r['회계분기']))
       );
       data[yr][t]={
