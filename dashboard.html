@@ -154,6 +154,34 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <!-- 상단 카드 3개 (100% Invoice 기준) -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="kpiCards"></div>
 
+    <!-- 게이지 차트 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+        <div class="card-title" style="margin-bottom:0;">달성율</div>
+        <div class="filter-wrap">
+          <button class="f-btn gauge-btn active" data-val="전체" onclick="switchGauge(this)">전체</button>
+          <button class="f-btn gauge-btn" data-val="Q1" onclick="switchGauge(this)">Q1</button>
+          <button class="f-btn gauge-btn" data-val="Q2" onclick="switchGauge(this)">Q2</button>
+          <button class="f-btn gauge-btn" data-val="Q3" onclick="switchGauge(this)">Q3</button>
+          <button class="f-btn gauge-btn" data-val="Q4" onclick="switchGauge(this)">Q4</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="gaugeWrap">
+        <div style="text-align:center;">
+          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">Revenue 달성율</div>
+          <svg id="gaugeRev" viewBox="0 0 200 110" style="width:100%;max-width:260px;"></svg>
+          <div id="gaugeRevLabel" style="font-size:14pt;font-weight:700;font-family:'DM Mono',monospace;margin-top:-8px;"></div>
+          <div id="gaugeRevSub" style="font-size:10pt;color:var(--muted);margin-top:4px;"></div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">GM 달성율</div>
+          <svg id="gaugeGm" viewBox="0 0 200 110" style="width:100%;max-width:260px;"></svg>
+          <div id="gaugeGmLabel" style="font-size:14pt;font-weight:700;font-family:'DM Mono',monospace;margin-top:-8px;"></div>
+          <div id="gaugeGmSub" style="font-size:10pt;color:var(--muted);margin-top:4px;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- 분기별 표 (전체 너비) -->
     <div class="card">
       <div class="card-title">26년 분기별 상세 (75%↑ 반영)</div>
@@ -217,6 +245,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
         <div class="card-title" style="margin-bottom:0;">YoY 실적 분석: 신규 vs 리뉴얼</div>
+        <div id="yoyTypeSummary"></div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span class="filter-label">분기</span>
           <div class="filter-wrap">
@@ -228,6 +257,22 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
           <button class="reset-btn" onclick="resetYoyQ()">전체 선택</button>
           <button class="reset-btn" onclick="clearYoyQ()">전체 해제</button>
         </div>
+      </div>
+      <div class="grid2" style="margin-bottom:16px;">
+        <div>
+          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">Revenue</div>
+          <div style="position:relative;height:180px;"><canvas id="yoyTypeRevChart"></canvas></div>
+        </div>
+        <div>
+          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">GM</div>
+          <div style="position:relative;height:180px;"><canvas id="yoyTypeGmChart"></canvas></div>
+        </div>
+      </div>
+      <div class="legend-row" style="margin-bottom:14px;">
+        <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.7)"></div>25년 New</div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.3)"></div>25년 Renewal</div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.8)"></div>26년 New</div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(22,163,74,.35)"></div>26년 Renewal</div>
       </div>
       <div style="overflow-x:auto;">
         <table class="tbl" id="yoyTypeTable">
@@ -890,6 +935,10 @@ async function loadData(){
     yoyTypeRaw = raw.filter(r=>r['상태']==='100%(Invoice)'&&(String(r['회계년도'])==='2025'||String(r['회계년도'])==='2026'));
     renderYoyType();
 
+    // 게이지 데이터 저장 및 렌더
+    gaugeData={raw, tgtMap};
+    renderGauge('전체');
+
   }catch(e){
     console.error('loadData 오류:', e);
     document.getElementById('loadingOverlay').innerHTML=`<div style="text-align:center;padding:24px;color:var(--red);font-size:13px;">데이터 로드 실패<br><span style="font-size:11px;color:var(--muted);margin-top:4px;display:block;">Google Sheets 공유 설정을 확인해주세요.</span></div>`;
@@ -1011,6 +1060,121 @@ function renderYoyType(){
     // 연도 구분선
     if(!is26) tbody.innerHTML+=`<tr><td colspan="6" style="padding:4px 0;background:var(--border);"></td></tr>`;
   });
+
+  // ── 그룹형 막대 차트 ──────────────────────────
+  const chartOpts={
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}억`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#8890a8',font:{size:10}}},
+      y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:10},callback:v=>v+'억'}}
+    }
+  };
+  const labels=['New','Renewal'];
+  const revData25=TYPES.map(t=>(data['2025'][t].rev/1e8).toFixed(2)*1);
+  const revData26=TYPES.map(t=>(data['2026'][t].rev/1e8).toFixed(2)*1);
+  const gmData25=TYPES.map(t=>(data['2025'][t].gm/1e8).toFixed(2)*1);
+  const gmData26=TYPES.map(t=>(data['2026'][t].gm/1e8).toFixed(2)*1);
+
+  createChart('yoyTypeRevChart',{type:'bar',data:{labels,datasets:[
+    {label:'25년 New / Renewal',data:revData25,backgroundColor:['rgba(37,99,235,.7)','rgba(37,99,235,.3)'],borderRadius:4,borderSkipped:false},
+    {label:'26년 New / Renewal',data:revData26,backgroundColor:['rgba(22,163,74,.8)','rgba(22,163,74,.35)'],borderRadius:4,borderSkipped:false},
+  ]},options:chartOpts});
+
+  createChart('yoyTypeGmChart',{type:'bar',data:{labels,datasets:[
+    {label:'25년 New / Renewal',data:gmData25,backgroundColor:['rgba(37,99,235,.7)','rgba(37,99,235,.3)'],borderRadius:4,borderSkipped:false},
+    {label:'26년 New / Renewal',data:gmData26,backgroundColor:['rgba(22,163,74,.8)','rgba(22,163,74,.35)'],borderRadius:4,borderSkipped:false},
+  ]},options:chartOpts});
+}
+
+// ── 게이지 차트 ───────────────────────────────────
+let gaugeData={};
+
+function drawGauge(svgId, pct, color){
+  const svg=document.getElementById(svgId);
+  if(!svg) return;
+  const cx=100, cy=100, r=80;
+  const clampedPct=Math.min(pct, 150); // 최대 150%까지 표시
+  const angle=-180 + (clampedPct/100)*180;
+  const rad=angle*Math.PI/180;
+  const ex=cx+r*Math.cos(rad);
+  const ey=cy+r*Math.sin(rad);
+
+  // 배경 호 (회색)
+  const bgPath=`M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`;
+  // 달성 호
+  const large=clampedPct>=100?1:0;
+  const fillPath=`M ${cx-r} ${cy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
+
+  // 눈금 (0%, 25%, 50%, 75%, 100%)
+  const ticks=[0,25,50,75,100].map(p=>{
+    const a=(-180+(p/100)*180)*Math.PI/180;
+    const x1=cx+(r-8)*Math.cos(a), y1=cy+(r-8)*Math.sin(a);
+    const x2=cx+(r+2)*Math.cos(a), y2=cy+(r+2)*Math.sin(a);
+    const tx=cx+(r-20)*Math.cos(a), ty=cy+(r-20)*Math.sin(a);
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#e2e6ef" stroke-width="1.5"/>
+            <text x="${tx.toFixed(1)}" y="${(ty+3).toFixed(1)}" text-anchor="middle" font-size="8" fill="#8890a8">${p}%</text>`;
+  }).join('');
+
+  // 바늘
+  const needleRad=rad;
+  const nx=cx+60*Math.cos(needleRad), ny=cy+60*Math.sin(needleRad);
+  const nx2=cx-12*Math.cos(needleRad), ny2=cy-12*Math.sin(needleRad);
+
+  svg.innerHTML=`
+    <path d="${bgPath}" fill="none" stroke="#e2e6ef" stroke-width="14" stroke-linecap="round"/>
+    <path d="${fillPath}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round" opacity="0.85"/>
+    ${ticks}
+    <line x1="${nx2.toFixed(1)}" y1="${ny2.toFixed(1)}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#1a1d2e" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="#1a1d2e"/>
+  `;
+}
+
+function switchGauge(btn){
+  document.querySelectorAll('.gauge-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGauge(btn.dataset.val);
+}
+
+function renderGauge(selected){
+  if(!gaugeData || !gaugeData.raw) return;
+  const {raw, tgtMap}=gaugeData;
+
+  let actRev=0, actGm=0, tgtRev=0, tgtGm=0, label='';
+
+  if(selected==='전체'){
+    const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']==='100%(Invoice)');
+    actRev=rows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+    actGm=rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    tgtRev=tgtMap['2026_연간']?.rev||0;
+    tgtGm=tgtMap['2026_연간']?.gm||0;
+    label='2026년 연간';
+  } else {
+    const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===selected&&r['상태']==='100%(Invoice)');
+    actRev=rows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+    actGm=rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    tgtRev=tgtMap[`2026_${selected}`]?.rev||0;
+    tgtGm=tgtMap[`2026_${selected}`]?.gm||0;
+    label=`2026년 ${selected}`;
+  }
+
+  const revPct=tgtRev?actRev/tgtRev*100:0;
+  const gmPct=tgtGm?actGm/tgtGm*100:0;
+
+  function gaugeColor(p){return p>=100?'#16a34a':p>=80?'#d97706':'#dc2626';}
+
+  drawGauge('gaugeRev', revPct, gaugeColor(revPct));
+  drawGauge('gaugeGm',  gmPct,  gaugeColor(gmPct));
+
+  document.getElementById('gaugeRevLabel').innerHTML=
+    `<span style="color:${gaugeColor(revPct)}">${tgtRev?revPct.toFixed(1)+'%':'타겟 미입력'}</span>`;
+  document.getElementById('gaugeRevSub').textContent=
+    tgtRev?`${fmt(actRev)} / ${fmt(tgtRev)}`:label;
+
+  document.getElementById('gaugeGmLabel').innerHTML=
+    `<span style="color:${gaugeColor(gmPct)}">${tgtGm?gmPct.toFixed(1)+'%':'타겟 미입력'}</span>`;
+  document.getElementById('gaugeGmSub').textContent=
+    tgtGm?`${fmt(actGm)} / ${fmt(tgtGm)}`:label;
 }
 
 // ── 파이프라인 리스트 ──────────────────────────────
