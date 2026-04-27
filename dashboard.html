@@ -129,9 +129,20 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <div class="header">
     <div>
       <div class="header-title">전략사업본부 영업 실적 대시보드</div>
-      <div class="header-sub">2025 · 2026 실적 & 파이프라인</div>
+      <div class="header-sub"><span id='header_years'></span> 실적 &amp; 파이프라인</div>
     </div>
-    <div class="last-updated" id="lastUpdated">로딩 중...</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10pt;color:var(--muted);font-weight:500;">기준연도</span>
+        <div class="filter-wrap">
+          <button class="f-btn yr-sel-btn" data-val="2024" onclick="switchYear(this)">2024</button>
+          <button class="f-btn yr-sel-btn" data-val="2025" onclick="switchYear(this)">2025</button>
+          <button class="f-btn yr-sel-btn active" data-val="2026" onclick="switchYear(this)">2026</button>
+          <button class="f-btn yr-sel-btn" data-val="2027" onclick="switchYear(this)">2027</button>
+        </div>
+      </div>
+      <div class="last-updated" id="lastUpdated">로딩 중...</div>
+    </div>
   </div>
 
   <div class="fx-banner">
@@ -305,11 +316,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <!-- 깔때기 차트 + 분기별 차트 -->
     <div class="grid2">
       <div class="card">
-        <div class="card-title">Stage별 현황 (2026년)</div>
+        <div class="card-title">Stage별 현황 (<span id='baseyear_stage'></span>년)</div>
         <div id="funnelChart"></div>
       </div>
       <div class="card">
-        <div class="card-title">분기별 파이프라인 예상마진 (2026년)</div>
+        <div class="card-title">분기별 파이프라인 예상마진 (<span id='baseyear_pipe'></span>년)</div>
         <div style="position:relative;height:240px;"><canvas id="pipeChart" role="img" aria-label="파이프라인 분기별 현황"></canvas></div>
       </div>
     </div>
@@ -415,7 +426,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span class="filter-label">연도</span>
           <div class="filter-wrap">
-            <button class="f-btn ib-yr-btn active" data-val="2025" onclick="toggleIbFilter('yr',this)">2025</button>
+            <button class="f-btn ib-yr-btn active" data-val="" + String(PREV_YEAR) + "" onclick="toggleIbFilter('yr',this)">2025</button>
             <button class="f-btn ib-yr-btn active" data-val="2026" onclick="toggleIbFilter('yr',this)">2026</button>
           </div>
           <span class="filter-label" style="margin-left:4px;">본부</span>
@@ -451,6 +462,39 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 </div>
 
 <script>
+let BASE_YEAR = 2026; // ← 연도 변경 시 여기만 수정
+let PREV_YEAR = BASE_YEAR - 1;
+
+function switchYear(btn){
+  document.querySelectorAll('.yr-sel-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  BASE_YEAR = parseInt(btn.dataset.val);
+  PREV_YEAR = BASE_YEAR - 1;
+  updateYearLabels();
+  // 데이터 다시 로드
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+  cachedRaw = [];
+  loadData().then(()=>{
+    loadPipeList();
+    loadIb();
+  });
+}
+
+function updateYearLabels(){
+  const hy=document.getElementById('header_years');
+  if(hy) hy.textContent=`${PREV_YEAR} · ${BASE_YEAR}`;
+  const bs=document.getElementById('baseyear_stage');
+  if(bs) bs.textContent=BASE_YEAR;
+  const bp=document.getElementById('baseyear_pipe');
+  if(bp) bp.textContent=BASE_YEAR;
+  // IB 필터 버튼 텍스트 업데이트
+  document.querySelectorAll('.ib-yr-btn').forEach(b=>{
+    const v=parseInt(b.dataset.val);
+    if(v===2025||v===2026) {
+      // 기존 버튼 유지 (데이터는 실제 연도로)
+    }
+  });
+}
 const SHEET_ID = '1L6Se7nl4s4r-ErTLw0JVPtu1V21SG2qb-sGBhHWOupc';
 
 function gvizUrl(sheet){
@@ -597,11 +641,11 @@ async function loadData(){
     const PIPE75=['75%(Commit)','90%(Won)'];
 
     // 25년 (카드 YoY용, 100%만)
-    const raw25inv=raw.filter(r=>String(r['회계년도'])==='2025'&&r['상태']==='100%(Invoice)');
+    const raw25inv=raw.filter(r=>String(r['회계년도'])===String(PREV_YEAR)&&r['상태']==='100%(Invoice)');
     const s25={rev:sumRev(raw25inv),gm:sumGm(raw25inv),ib:sumIb(raw25inv)};
 
     // 26년 카드용: 100%만
-    const raw26inv=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']==='100%(Invoice)');
+    const raw26inv=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['상태']==='100%(Invoice)');
     const tot26rev=sumRev(raw26inv);
     const tot26gm=sumGm(raw26inv);
     const tot26ib=sumIb(raw26inv);
@@ -609,8 +653,8 @@ async function loadData(){
     // 26년 분기별 표용: 75%↑
     const s26q={};
     QS.forEach(q=>{
-      const inv=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&r['상태']==='100%(Invoice)');
-      const pipe=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&PIPE75.includes(r['상태']));
+      const inv=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['회계분기']===q&&r['상태']==='100%(Invoice)');
+      const pipe=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['회계분기']===q&&PIPE75.includes(r['상태']));
       const allRows=[...inv,...pipe];
       s26q[q]={
         rev:sumRev(allRows),gm:sumGm(allRows),ib:sumIb(allRows),
@@ -622,15 +666,15 @@ async function loadData(){
     // 26년 차트용: 확정(100%)과 예측추가분(75%↑) 분리
     const s26chart={};
     QS.forEach(q=>{
-      const inv=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&r['상태']==='100%(Invoice)');
-      const pipe=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&PIPE75.includes(r['상태']));
+      const inv=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['회계분기']===q&&r['상태']==='100%(Invoice)');
+      const pipe=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['회계분기']===q&&PIPE75.includes(r['상태']));
       s26chart[q]={invGm:sumGm(inv),pipeGm:sumGm(pipe)};
     });
 
     // ── KPI 카드 (100% 기준) ──────────────
     function achvColor(r){return r>=100?'var(--green)':r>=80?'var(--amber)':'var(--red)';}
-    const t25=getTgt('2025_연간');
-    const t26=getTgt('2026_연간');
+    const t25=getTgt(`${PREV_YEAR}_연간`);
+    const t26=getTgt(`${BASE_YEAR}_연간`);
     const yoyRev=pct(tot26rev,s25.rev);
     const yoyGm=pct(tot26gm,s25.gm);
     const marginRatio=tot26rev?((tot26gm-tot26ib)/tot26rev*100):0;
@@ -664,7 +708,7 @@ async function loadData(){
     tbody.innerHTML='';
     QS.forEach(q=>{
       const d=s26q[q];
-      const tq=getTgt(`2026_${q}`);
+      const tq=getTgt(`${BASE_YEAR}_${q}`);
       const gmIb=d.gm-d.ib;
       const gmAchv=tq.gm?gmIb/tq.gm*100:null;
       const achvStr=gmAchv!==null?`<span style="color:${achvColor(gmAchv)};font-weight:700;">${gmAchv.toFixed(1)}%</span>`:'—';
@@ -702,7 +746,7 @@ async function loadData(){
 
     // ── YoY 탭용 집계 ────────────────────
     const qData={};
-    for(const yr of ['2025','2026']){
+    for(const yr of [String(PREV_YEAR),String(BASE_YEAR)]){
       qData[yr]={};
       for(const q of QS){
         const inv=actual.filter(r=>String(r['회계년도'])===yr&&r['회계분기']===q);
@@ -746,10 +790,10 @@ async function loadData(){
         const pipeQs=['Q1','Q2','Q3','Q4'];
         const pipeQData=pipeQs.map(q=>{
           if(q==='Q1'){
-            const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']==='Q1'&&r['상태']==='100%(Invoice)');
+            const rows=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['회계분기']==='Q1'&&r['상태']==='100%(Invoice)');
             return +(rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0)/1e8).toFixed(2);
           } else {
-            const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===q&&['75%(Commit)','90%(Won)'].includes(r['상태']));
+            const rows=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['회계분기']===q&&['75%(Commit)','90%(Won)'].includes(r['상태']));
             return +(rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0)/1e8).toFixed(2);
           }
         });
@@ -802,7 +846,7 @@ async function loadData(){
     const tcols={'New':'var(--accent)','Renewal':'var(--green)','Renewal(1st)':'var(--amber)','1time':'var(--red)'};
     const types26={};
     ['New','Renewal','Renewal(1st)','1time'].forEach(t=>{
-      const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']==='100%(Invoice)'&&r['영업 구분']===t);
+      const rows=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['상태']==='100%(Invoice)'&&r['영업 구분']===t);
       types26[t]=sumGm(rows);
     });
     const maxT=Math.max(...Object.values(types26),1);
@@ -822,13 +866,13 @@ async function loadData(){
     const yoyCards=document.getElementById('yoyCards');
     yoyCards.innerHTML='';
     QS.forEach(q=>{
-      const m25=qData['2025'][q].mar,m26=qData['2026'][q].mar;
+      const m25=qData[String(PREV_YEAR)][q].mar,m26=qData[String(BASE_YEAR)][q].mar;
       const y=pct(m26,m25);
       const bg=y===null?'rgba(136,144,168,.08)':y>=0?'rgba(22,163,74,.08)':'rgba(220,38,38,.08)';
       const col=y===null?'var(--muted)':y>=0?'var(--green)':'var(--red)';
       yoyCards.innerHTML+=`<div class="yoy-card">
         <div class="yoy-q">${q}</div>
-        <div class="yoy-row"><span class="yoy-year">2025</span><span class="yoy-mar">${fmt(m25)}</span></div>
+        <div class="yoy-row"><span class="yoy-year">${PREV_YEAR}</span><span class="yoy-mar">${fmt(m25)}</span></div>
         <div class="yoy-row"><span class="yoy-year">2026 실적</span><span class="yoy-mar" style="color:var(--accent)">${m26?fmt(m26):'—'}</span></div>
         <div class="yoy-change" style="background:${bg};color:${col}">실적 YoY ${y!==null?sign(y)+y.toFixed(1)+'%':'—'}</div>
       </div>`;
@@ -839,8 +883,8 @@ async function loadData(){
     ytb.innerHTML='';
     let yoyTot25=0,yoyTot26=0,yoyTc25=0,yoyTc26=0;
     QS.forEach(q=>{
-      const {cnt:c25,mar:m25}=qData['2025'][q];
-      const {cnt:c26,mar:m26}=qData['2026'][q];
+      const {cnt:c25,mar:m25}=qData[String(PREV_YEAR)][q];
+      const {cnt:c26,mar:m26}=qData[String(BASE_YEAR)][q];
       const y=pct(m26,m25);
       yoyTot25+=m25;yoyTot26+=m26;yoyTc25+=c25;yoyTc26+=c26;
       ytb.innerHTML+=`<tr>
@@ -863,13 +907,13 @@ async function loadData(){
     };
     const pipe26={};
     allStages.forEach(s=>{
-      const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']===s);
+      const rows=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['상태']===s);
       pipe26[s]={cnt:rows.length, pmar:sumGm(rows)};
     });
 
     // 예상마진 합계: 75%↑ (75%+90%+100%)
-    const totPcnt=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']!=='0%(Lost)').length;
-    const pipe75up=raw.filter(r=>String(r['회계년도'])==='2026'&&['75%(Commit)','90%(Won)','100%(Invoice)'].includes(r['상태']));
+    const totPcnt=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['상태']!=='0%(Lost)').length;
+    const pipe75up=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&['75%(Commit)','90%(Won)','100%(Invoice)'].includes(r['상태']));
     const totPmar=pipe75up.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
     const inv26cnt=pipe26['100%(Invoice)'].cnt;
     const won26cnt=pipe26['90%(Won)'].cnt;
@@ -910,8 +954,8 @@ async function loadData(){
         if(!v||r['상태']!=='100%(Invoice)') return;
         if(!vendorMap[v]) vendorMap[v]={y25:0,y26:0};
         const yr=String(r['회계년도']);
-        if(yr==='2025') vendorMap[v].y25+=parseFloat(r['예상 마진'])||0;
-        else if(yr==='2026') vendorMap[v].y26+=parseFloat(r['예상 마진'])||0;
+        if(String(yr)===String(PREV_YEAR)) vendorMap[v].y25+=parseFloat(r['예상 마진'])||0;
+        else if(String(yr)===String(BASE_YEAR)) vendorMap[v].y26+=parseFloat(r['예상 마진'])||0;
       });
       const top10=Object.entries(vendorMap).sort((a,b)=>(b[1].y25+b[1].y26)-(a[1].y25+a[1].y26)).slice(0,10);
       const maxV=Math.max(...top10.map(([,d])=>Math.max(d.y25,d.y26)));
@@ -939,9 +983,10 @@ async function loadData(){
 
     const now=new Date();
     document.getElementById('lastUpdated').textContent=`${now.toLocaleDateString('ko-KR')} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
+    updateYearLabels();
 
     // YoY 영업구분 표용 RAW 저장
-    yoyTypeRaw = raw.filter(r=>r['상태']==='100%(Invoice)'&&(String(r['회계년도'])==='2025'||String(r['회계년도'])==='2026'));
+    yoyTypeRaw = raw.filter(r=>r['상태']==='100%(Invoice)'&&(String(r['회계년도'])==='2025'||String(r['회계년도'])===String(BASE_YEAR)));
     renderYoyType();
 
     // 게이지 데이터 저장 및 렌더
@@ -994,7 +1039,7 @@ function renderYoyType(){
 
   // 연도×영업구분 집계 (Renewal(1st) → Renewal 합산)
   const data={};
-  ['2025','2026'].forEach(yr=>{
+  [String(PREV_YEAR),String(BASE_YEAR)].forEach(yr=>{
     data[yr]={};
     TYPES.forEach(t=>{
       // Renewal이면 Renewal(1st)도 포함
@@ -1012,8 +1057,8 @@ function renderYoyType(){
     });
   });
 
-  ['2025','2026'].forEach((yr,yi)=>{
-    const is26=yr==='2026';
+  [String(PREV_YEAR),String(BASE_YEAR)].forEach((yr,yi)=>{
+    const is26=yr===String(BASE_YEAR);
     const rowBg=is26?'rgba(30,58,138,.06)':'rgba(241,243,248,.6)';
     const fontW=is26?'700':'400';
     const yrColor=is26?'#1e3a8a':'var(--muted)';
@@ -1027,7 +1072,7 @@ function renderYoyType(){
       // YoY 계산
       let yoyStr='';
       if(is26){
-        const d25=data['2025'][t];
+        const d25=data[String(PREV_YEAR)][t];
         const yGm=d25.gm?((d.gm-d25.gm)/d25.gm*100):null;
         if(yGm!==null){
           const c=yGm>=0?'var(--green)':'var(--red)';
@@ -1051,7 +1096,7 @@ function renderYoyType(){
     const totIb=TYPES.reduce((s,t)=>s+data[yr][t].ib,0);
     let totYoy='';
     if(is26){
-      const tot25Gm=TYPES.reduce((s,t)=>s+data['2025'][t].gm,0);
+      const tot25Gm=TYPES.reduce((s,t)=>s+data[String(PREV_YEAR)][t].gm,0);
       const y=tot25Gm?((totGm-tot25Gm)/tot25Gm*100):null;
       if(y!==null){
         const c=y>=0?'var(--green)':'var(--red)';
@@ -1080,10 +1125,10 @@ function renderYoyType(){
     }
   };
   const labels=['New','Renewal'];
-  const revData25=TYPES.map(t=>(data['2025'][t].rev/1e8).toFixed(2)*1);
-  const revData26=TYPES.map(t=>(data['2026'][t].rev/1e8).toFixed(2)*1);
-  const gmData25=TYPES.map(t=>(data['2025'][t].gm/1e8).toFixed(2)*1);
-  const gmData26=TYPES.map(t=>(data['2026'][t].gm/1e8).toFixed(2)*1);
+  const revData25=TYPES.map(t=>(data[String(PREV_YEAR)][t].rev/1e8).toFixed(2)*1);
+  const revData26=TYPES.map(t=>(data[String(BASE_YEAR)][t].rev/1e8).toFixed(2)*1);
+  const gmData25=TYPES.map(t=>(data[String(PREV_YEAR)][t].gm/1e8).toFixed(2)*1);
+  const gmData26=TYPES.map(t=>(data[String(BASE_YEAR)][t].gm/1e8).toFixed(2)*1);
 
   createChart('yoyTypeRevChart',{type:'bar',data:{labels,datasets:[
     {label:'25년',data:revData25,backgroundColor:['rgba(37,99,235,.3)','rgba(22,163,74,.3)'],borderRadius:4,borderSkipped:false},
@@ -1180,19 +1225,19 @@ function renderGauge(selected){
   let actRev=0, actGm=0, tgtRev=0, tgtGm=0, label='';
 
   if(selected==='전체'){
-    const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']==='100%(Invoice)');
+    const rows=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['상태']==='100%(Invoice)');
     actRev=rows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
     actGm=rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
-    tgtRev=tgtMap['2026_연간']?.rev||0;
-    tgtGm=tgtMap['2026_연간']?.gm||0;
-    label='2026년 연간';
+    tgtRev=tgtMap[`${BASE_YEAR}_연간`]?.rev||0;
+    tgtGm=tgtMap[`${BASE_YEAR}_연간`]?.gm||0;
+    label=`${BASE_YEAR}년 연간`;
   } else {
-    const rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===selected&&r['상태']==='100%(Invoice)');
+    const rows=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['회계분기']===selected&&r['상태']==='100%(Invoice)');
     actRev=rows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
     actGm=rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
-    tgtRev=tgtMap[`2026_${selected}`]?.rev||0;
-    tgtGm=tgtMap[`2026_${selected}`]?.gm||0;
-    label=`2026년 ${selected}`;
+    tgtRev=tgtMap[`${BASE_YEAR}_${selected}`]?.rev||0;
+    tgtGm=tgtMap[`${BASE_YEAR}_${selected}`]?.gm||0;
+    label=`${BASE_YEAR}년 ${selected}`;
   }
 
   const revPct=tgtRev?actRev/tgtRev*100:0;
@@ -1200,8 +1245,8 @@ function renderGauge(selected){
 
   // IB 계산
   const ibRows=selected==='전체'
-    ? raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']==='100%(Invoice)')
-    : raw.filter(r=>String(r['회계년도'])==='2026'&&r['회계분기']===selected&&r['상태']==='100%(Invoice)');
+    ? raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['상태']==='100%(Invoice)')
+    : raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['회계분기']===selected&&r['상태']==='100%(Invoice)');
   const actIb=ibRows.reduce((s,r)=>s+(parseFloat(r['Interbilling'])||0),0);
   const actGmIb=actGm-actIb;
   const gmIbPct=tgtGm?actGmIb/tgtGm*100:0;
@@ -1333,7 +1378,7 @@ async function loadPipeList(){
   try{
     // cachedRaw가 있으면 재사용, 없으면 로드
     const raw = cachedRaw.length > 0 ? cachedRaw : await fetchSheet('RAW');
-    pipeRawData=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']!=null);
+    pipeRawData=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['상태']!=null);
     renderPipeList();
   }catch(e){
     document.getElementById('pipeListBody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">리스트 로드 실패</td></tr>`;
@@ -1350,7 +1395,7 @@ setInterval(loadFX,60000);
 
 // ── 인터빌링 ──────────────────────────────
 let ibRawData=[];
-let ibActiveYr=new Set(['2025','2026']);
+let ibActiveYr=new Set([String(PREV_YEAR),String(BASE_YEAR)]);
 let ibActiveHq=new Set(['보안사업본부','이노베이션사업본부','연구개발본부']);
 
 // 본부명 정제 (코드 제거)
@@ -1379,7 +1424,7 @@ function toggleIbFilter(type,btn){
 }
 
 function resetIbFilters(){
-  ibActiveYr=new Set(['2025','2026']);
+  ibActiveYr=new Set([String(PREV_YEAR),String(BASE_YEAR)]);
   ibActiveHq=new Set(['보안사업본부','이노베이션사업본부','연구개발본부']);
   document.querySelectorAll('.ib-yr-btn,.ib-hq-btn').forEach(b=>b.classList.add('active'));
   renderIbList();
@@ -1452,8 +1497,8 @@ async function loadIb(){
     });
 
     // KPI
-    const ib25rows=raw.filter(r=>String(r['회계년도'])==='2025'&&r['상태']==='100%(Invoice)');
-    const ib26rows=raw.filter(r=>String(r['회계년도'])==='2026'&&r['상태']==='100%(Invoice)');
+    const ib25rows=raw.filter(r=>String(r['회계년도'])===String(PREV_YEAR)&&r['상태']==='100%(Invoice)');
+    const ib26rows=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR)&&r['상태']==='100%(Invoice)');
     const mar25=ib25rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
     const mar26=ib26rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
     const ib25=ib25rows.reduce((s,r)=>s+(parseFloat(r['IB(-)'])||0),0);
@@ -1461,10 +1506,10 @@ async function loadIb(){
     const net25=mar25-ib25, net26=mar26-ib26;
 
     document.getElementById('ibKpi').innerHTML=`
-      <div class="kpi"><div class="kpi-label">25년 IB 차감 합계</div><div class="kpi-val" style="color:var(--red)">${fmt(ib25)}</div><div class="kpi-sub neu">마진의 ${mar25?(ib25/mar25*100).toFixed(1):0}%</div></div>
-      <div class="kpi"><div class="kpi-label">25년 순마진 (IB 차감 후)</div><div class="kpi-val" style="color:var(--green)">${fmt(net25)}</div><div class="kpi-sub neu">총마진 ${fmt(mar25)}</div></div>
-      <div class="kpi"><div class="kpi-label">26년 IB 차감 합계</div><div class="kpi-val" style="color:var(--red)">${fmt(ib26)}</div><div class="kpi-sub neu">마진의 ${mar26?(ib26/mar26*100).toFixed(1):0}%</div></div>
-      <div class="kpi"><div class="kpi-label">26년 순마진 (IB 차감 후)</div><div class="kpi-val" style="color:var(--green)">${fmt(net26)}</div><div class="kpi-sub neu">총마진 ${fmt(mar26)}</div></div>
+      <div class="kpi"><div class="kpi-label">${PREV_YEAR}년 IB 차감 합계</div><div class="kpi-val" style="color:var(--red)">${fmt(ib25)}</div><div class="kpi-sub neu">마진의 ${mar25?(ib25/mar25*100).toFixed(1):0}%</div></div>
+      <div class="kpi"><div class="kpi-label">${PREV_YEAR}년 순마진 (IB 차감 후)</div><div class="kpi-val" style="color:var(--green)">${fmt(net25)}</div><div class="kpi-sub neu">총마진 ${fmt(mar25)}</div></div>
+      <div class="kpi"><div class="kpi-label">${BASE_YEAR}년 IB 차감 합계</div><div class="kpi-val" style="color:var(--red)">${fmt(ib26)}</div><div class="kpi-sub neu">마진의 ${mar26?(ib26/mar26*100).toFixed(1):0}%</div></div>
+      <div class="kpi"><div class="kpi-label">${BASE_YEAR}년 순마진 (IB 차감 후)</div><div class="kpi-val" style="color:var(--green)">${fmt(net26)}</div><div class="kpi-sub neu">총마진 ${fmt(mar26)}</div></div>
     `;
 
     // 본부별 집계 테이블
@@ -1477,8 +1522,8 @@ async function loadIb(){
       if(!hqMap[hq]) return;
       const yr=String(r['회계년도']);
       const mar=parseFloat(r['예상 마진'])||0;
-      if(yr==='2025'){hqMap[hq].mar25+=mar;hqMap[hq].ib25+=parseFloat(r['IB(-)'])||0;}
-      else if(yr==='2026'){hqMap[hq].mar26+=mar;hqMap[hq].ib26+=parseFloat(r['Interbilling'])||0;}
+      if(yr===String(PREV_YEAR)){hqMap[hq].mar25+=mar;hqMap[hq].ib25+=parseFloat(r['IB(-)'])||0;}
+      else if(yr===String(BASE_YEAR)){hqMap[hq].mar26+=mar;hqMap[hq].ib26+=parseFloat(r['Interbilling'])||0;}
     });
 
     const htb=document.getElementById('ibHqTable');
