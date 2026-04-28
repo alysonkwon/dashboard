@@ -112,9 +112,75 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .pipe-summary-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;}
 
 @media(max-width:768px){
-  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  /* 레이아웃 */
+  .container{padding:12px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
   .yoy-grid{grid-template-columns:repeat(2,1fr);}
   .grid2{grid-template-columns:1fr;}
+
+  /* 헤더 */
+  .header{flex-direction:column;align-items:flex-start;gap:8px;}
+  .header-title{font-size:15px;}
+  .header-sub{font-size:9pt;}
+  .last-updated{font-size:9pt;}
+
+  /* 탭 - 가로 스크롤 */
+  .tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+  .tab{flex-shrink:0;font-size:10pt;padding:7px 12px;white-space:nowrap;}
+
+  /* 카드 */
+  .card{padding:14px;}
+  .card-title{font-size:11pt;}
+
+  /* KPI */
+  .kpi{padding:12px 10px;}
+  .kpi-val{font-size:18px;}
+  .kpi-label{font-size:9pt;}
+  .kpi-sub{font-size:9pt;}
+
+  /* 게이지 3개 → 1열 */
+  #gaugeWrap{grid-template-columns:1fr!important;}
+
+  /* 표 */
+  .tbl th{font-size:10pt;padding:6px 7px;}
+  .tbl td{font-size:9pt;padding:6px 7px;}
+
+  /* 필터 버튼 */
+  .filter-wrap{flex-wrap:wrap;}
+  .f-btn{font-size:9pt;padding:4px 9px;}
+
+  /* YoY 카드 */
+  .yoy-card{padding:10px;}
+  .yoy-mar{font-size:12px;}
+
+  /* 바 차트 */
+  .bar-val{font-size:9pt;}
+  .bar-label{font-size:9pt;}
+
+  /* 환율 배너 */
+  .fx-pair{padding:5px 9px;}
+  .fx-rate{font-size:13px;}
+
+  /* 헤더 연도 선택기 */
+  .header>div:last-child{flex-wrap:wrap;gap:6px;}
+}
+
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .yoy-grid{grid-template-columns:1fr 1fr;}
+
+  /* 상단 KPI 카드 3개 → 1열 */
+  #kpiCards{grid-template-columns:1fr!important;}
+
+  /* 게이지 */
+  #gaugeWrap{grid-template-columns:1fr!important;}
+
+  /* 탭 폰트 더 작게 */
+  .tab{font-size:9pt;padding:6px 10px;}
+
+  /* 표 스크롤 */
+  .tbl th{font-size:9pt;padding:5px 6px;}
+  .tbl td{font-size:9pt;padding:5px 6px;}
 }
 </style>
 </head>
