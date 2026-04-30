@@ -541,25 +541,40 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       </div>
     </div>
 
-    <!-- 프로젝트 리스트 -->
+    <!-- 고객사 합계 + 프로젝트 리스트 테이블 -->
     <div id="projectListWrap" style="display:none;">
-      <div id="projectList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;"></div>
+      <div class="card">
+        <!-- 고객사 합계 KPI -->
+        <div class="kpi-grid" id="customerKpi" style="margin-bottom:16px;"></div>
+
+        <div class="card-title">프로젝트 목록</div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th style="text-align:left;">프로젝트명</th>
+              <th style="text-align:center;">분기</th>
+              <th style="text-align:center;">건수</th>
+              <th style="text-align:right;">계약금액</th>
+              <th style="text-align:right;">마진</th>
+              <th style="text-align:right;">발행완료 마진</th>
+              <th style="text-align:center;">발행완료율</th>
+            </tr></thead>
+            <tbody id="projectListBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- 프로젝트 상세 -->
     <div id="projectDetailWrap" style="display:none;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
         <button onclick="backToList()"
-          style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;">
+          style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--muted);cursor:pointer;">
           ← 목록으로
         </button>
         <span id="projectDetailName" style="font-size:12pt;font-weight:600;color:var(--text);"></span>
       </div>
-
-      <!-- KPI -->
       <div class="kpi-grid" id="projectKpi"></div>
-
-      <!-- 분기별 / 월별 테이블 -->
       <div class="card" id="projectTableCard">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <div class="card-title" style="margin-bottom:0;">계산서 발행 일정</div>
@@ -1733,57 +1748,67 @@ function onCustomerChange(){
   if(!customer){
     listWrap.style.display='none';
     emptyEl.style.display='block';
-    emptyEl.textContent='고객사를 선택해주세요';
     document.getElementById('projectCount').textContent='';
     return;
   }
 
-  // 해당 고객사 프로젝트 목록
-  const projects=[...new Set(
-    projectRawData.filter(r=>String(r['고객사명']).trim()===customer&&r['프로젝트명'])
-      .map(r=>String(r['프로젝트명']).trim())
-  )].filter(Boolean).sort();
+  const custRows=projectRawData.filter(r=>String(r['고객사명']).trim()===customer);
+  const projects=[...new Set(custRows.filter(r=>r['프로젝트명']).map(r=>String(r['프로젝트명']).trim()))].filter(Boolean).sort();
 
   document.getElementById('projectCount').textContent=`프로젝트 ${projects.length}개`;
   emptyEl.style.display='none';
   listWrap.style.display='block';
 
-  // 프로젝트 카드 리스트 렌더
-  const listEl=document.getElementById('projectList');
-  listEl.innerHTML='';
+  // 고객사 합계 KPI
+  const totRev=custRows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+  const totGm=custRows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+  const doneGm=custRows.filter(r=>r['상태']==='100%(Invoice)').reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+  const pendGm=totGm-doneGm;
+  document.getElementById('customerKpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">전체 계약금액</div><div class="kpi-val">${fmt(totRev)}</div><div class="kpi-sub neu">${custRows.length}건</div></div>
+    <div class="kpi"><div class="kpi-label">전체 마진</div><div class="kpi-val" style="color:var(--accent)">${fmt(totGm)}</div><div class="kpi-sub neu">프로젝트 ${projects.length}개</div></div>
+    <div class="kpi"><div class="kpi-label">발행완료 마진</div><div class="kpi-val" style="color:var(--green)">${fmt(doneGm)}</div><div class="kpi-sub neu">${totGm?Math.round(doneGm/totGm*100):0}% 달성</div></div>
+    <div class="kpi"><div class="kpi-label">발행예정 마진</div><div class="kpi-val" style="color:var(--amber)">${fmt(pendGm)}</div><div class="kpi-sub neu">잔여</div></div>
+  `;
 
+  // 프로젝트 리스트 테이블
+  const tbody=document.getElementById('projectListBody');
+  tbody.innerHTML='';
   projects.forEach(pjName=>{
-    const rows=projectRawData.filter(r=>String(r['프로젝트명']).trim()===pjName);
-    const totalRev=rows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
-    const totalGm=rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
-    const doneGm=rows.filter(r=>r['상태']==='100%(Invoice)').reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
-    const pct=totalGm?Math.round(doneGm/totalGm*100):0;
+    const rows=custRows.filter(r=>String(r['프로젝트명']).trim()===pjName);
+    const rev=rows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+    const gm=rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    const dGm=rows.filter(r=>r['상태']==='100%(Invoice)').reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    const pct=gm?Math.round(dGm/gm*100):0;
     const pctColor=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--accent)';
     const qs=[...new Set(rows.map(r=>r['회계분기']).filter(Boolean))].sort().join(' · ');
 
-    const card=document.createElement('div');
-    card.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.04);transition:all .15s;';
-    card.onmouseenter=()=>{card.style.borderColor='var(--accent)';card.style.boxShadow='0 2px 8px rgba(37,99,235,.15)';};
-    card.onmouseleave=()=>{card.style.borderColor='var(--border)';card.style.boxShadow='0 1px 4px rgba(0,0,0,.04)';};
-    card.onclick=()=>renderProject(pjName);
-    card.innerHTML=`
-      <div style="font-size:11pt;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4;">${pjName}</div>
-      <div style="font-size:10pt;color:var(--muted);margin-bottom:10px;">${qs}</div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-        <span style="font-size:10pt;color:var(--muted);">계약금액</span>
-        <span style="font-size:10pt;font-family:'DM Mono';font-weight:600;">${fmt(totalRev)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-size:10pt;color:var(--muted);">마진</span>
-        <span style="font-size:10pt;font-family:'DM Mono';font-weight:600;color:var(--accent);">${fmt(totalGm)}</span>
-      </div>
-      <div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;">
-        <div style="width:${Math.min(pct,100)}%;height:100%;background:${pctColor};border-radius:99px;transition:width .7s;"></div>
-      </div>
-      <div style="text-align:right;font-size:10pt;color:${pctColor};font-weight:600;margin-top:4px;">발행완료 ${pct}%</div>
-    `;
-    listEl.appendChild(card);
+    tbody.innerHTML+=`<tr style="cursor:pointer;" onclick="renderProject('${pjName.replace(/'/g,"\\'")}')">
+      <td class="txt" style="font-weight:500;color:var(--accent);text-decoration:underline;">${pjName}</td>
+      <td style="text-align:center;color:var(--muted);">${qs}</td>
+      <td style="text-align:center;color:var(--muted);">${rows.length}건</td>
+      <td style="text-align:right;">${fmt(rev)}</td>
+      <td style="text-align:right;color:var(--accent);">${fmt(gm)}</td>
+      <td style="text-align:right;color:var(--green);">${dGm?fmt(dGm):'—'}</td>
+      <td style="text-align:center;">
+        <span style="color:${pctColor};font-weight:700;">${pct}%</span>
+        <div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:3px;">
+          <div style="width:${Math.min(pct,100)}%;height:100%;background:${pctColor};border-radius:99px;"></div>
+        </div>
+      </td>
+    </tr>`;
   });
+
+  // 합계 행
+  tbody.innerHTML+=`<tr style="border-top:2px solid var(--border);background:rgba(37,99,235,.03);">
+    <td class="txt" style="font-weight:700;">합계</td>
+    <td></td>
+    <td style="text-align:center;font-weight:700;">${custRows.length}건</td>
+    <td style="text-align:right;font-weight:700;">${fmt(totRev)}</td>
+    <td style="text-align:right;color:var(--accent);font-weight:700;">${fmt(totGm)}</td>
+    <td style="text-align:right;color:var(--green);font-weight:700;">${fmt(doneGm)}</td>
+    <td style="text-align:center;font-weight:700;color:${totGm?'var(--accent)':'var(--muted)'};">${totGm?Math.round(doneGm/totGm*100):0}%</td>
+  </tr>`;
 }
 
 function backToList(){
