@@ -529,10 +529,18 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <!-- 프로젝트 -->
   <div class="panel" id="panel-project">
 
-    <!-- 고객사 선택 -->
+    <!-- 연도 + 고객사 필터 -->
     <div class="card" style="padding:14px 18px;">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <span style="font-size:10pt;font-weight:500;color:var(--muted);">고객사</span>
+        <span style="font-size:10pt;font-weight:500;color:var(--muted);">연도</span>
+        <div class="filter-wrap">
+          <button class="f-btn proj-yr-btn" data-val="2024" onclick="toggleProjectYr(this)">2024</button>
+          <button class="f-btn proj-yr-btn" data-val="2025" onclick="toggleProjectYr(this)">2025</button>
+          <button class="f-btn proj-yr-btn" data-val="2026" onclick="toggleProjectYr(this)">2026</button>
+          <button class="f-btn proj-yr-btn" data-val="2027" onclick="toggleProjectYr(this)">2027</button>
+        </div>
+        <button class="reset-btn" onclick="clearProjectYr()">전체 해제</button>
+        <span style="font-size:10pt;font-weight:500;color:var(--muted);margin-left:8px;">고객사</span>
         <select id="customerSelect" onchange="onCustomerChange()"
           style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);min-width:220px;cursor:pointer;">
           <option value="">-- 고객사 선택 --</option>
@@ -610,7 +618,6 @@ function switchYear(btn){
   BASE_YEAR = parseInt(btn.dataset.val);
   PREV_YEAR = BASE_YEAR - 1;
   updateYearLabels();
-  // 데이터 다시 로드
   document.getElementById('loadingOverlay').classList.remove('hidden');
   cachedRaw = [];
   loadData().then(()=>{
@@ -1705,36 +1712,74 @@ setInterval(loadFX,60000);
 
 // ── 프로젝트 탭 ──────────────────────────────────
 let projectRawData=[];
-let projectViewMode='quarter'; // quarter | month
+let projectViewMode='quarter';
+let projectActiveYrs=new Set(); // 디폴트 선택안함
 
 function toggleProjectView(btn){
   document.querySelectorAll('.proj-view-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   projectViewMode=btn.dataset.val;
-  renderProject();
+  const name=document.getElementById('projectDetailName').textContent;
+  if(name) renderProject(name);
+}
+
+function toggleProjectYr(btn){
+  const val=btn.dataset.val;
+  if(projectActiveYrs.has(val)){
+    projectActiveYrs.delete(val);
+    btn.classList.remove('active');
+  } else {
+    projectActiveYrs.add(val);
+    btn.classList.add('active');
+  }
+  refreshProjectData();
+}
+
+function clearProjectYr(){
+  projectActiveYrs=new Set();
+  document.querySelectorAll('.proj-yr-btn').forEach(b=>b.classList.remove('active'));
+  refreshProjectData();
+}
+
+function refreshProjectData(){
+  if(projectActiveYrs.size===0){
+    projectRawData=[];
+  } else {
+    projectRawData=cachedRaw.filter(r=>projectActiveYrs.has(String(r['회계년도'])));
+  }
+
+  const customers=[...new Set(
+    projectRawData.filter(r=>r['고객사명']).map(r=>String(r['고객사명']).trim())
+  )].filter(Boolean).sort();
+
+  const cSel=document.getElementById('customerSelect');
+  const prevVal=cSel.value;
+  cSel.innerHTML='<option value="">-- 고객사 선택 --</option>';
+  customers.forEach(c=>{
+    const opt=document.createElement('option');
+    opt.value=c; opt.textContent=c;
+    cSel.appendChild(opt);
+  });
+
+  document.getElementById('projectCount').textContent=
+    projectActiveYrs.size===0?'':customers.length>0?`고객사 ${customers.length}개`:'';
+
+  if(prevVal && customers.includes(prevVal)){
+    cSel.value=prevVal;
+    onCustomerChange();
+  } else {
+    cSel.value='';
+    document.getElementById('projectListWrap').style.display='none';
+    document.getElementById('projectDetailWrap').style.display='none';
+    document.getElementById('projectEmpty').style.display='block';
+    document.getElementById('projectEmpty').textContent=
+      projectActiveYrs.size===0?'연도를 선택해주세요':'고객사를 선택해주세요';
+  }
 }
 
 async function loadProjectTab(){
-  try{
-    const raw=cachedRaw.length>0?cachedRaw:await fetchSheet('RAW');
-    projectRawData=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR));
-
-    // 고객사 목록 (중복 제거, 정렬)
-    const customers=[...new Set(
-      projectRawData.filter(r=>r['고객사명']).map(r=>String(r['고객사명']).trim())
-    )].filter(Boolean).sort();
-
-    const cSel=document.getElementById('customerSelect');
-    cSel.innerHTML='<option value="">-- 고객사 선택 --</option>';
-    customers.forEach(c=>{
-      const opt=document.createElement('option');
-      opt.value=c; opt.textContent=c;
-      cSel.appendChild(opt);
-    });
-    document.getElementById('projectCount').textContent=`고객사 ${customers.length}개`;
-  }catch(e){
-    console.error('프로젝트 탭 로드 실패',e);
-  }
+  // 초기 상태 - 연도 선택 전
+  document.getElementById('projectEmpty').textContent='연도를 선택해주세요';
 }
 
 function onCustomerChange(){
@@ -1845,6 +1890,7 @@ function renderProject(pjName){
   const pendGm=totalGm-doneGm;
 
   // KPI
+  const kpiEl=document.getElementById('projectKpi');
   kpiEl.innerHTML=`
     <div class="kpi"><div class="kpi-label">전체 계약금액</div><div class="kpi-val">${fmt(totalRev)}</div><div class="kpi-sub neu">${rows.length}건</div></div>
     <div class="kpi"><div class="kpi-label">전체 마진</div><div class="kpi-val" style="color:var(--accent)">${fmt(totalGm)}</div><div class="kpi-sub neu">매입 ${fmt(totalMat)}</div></div>
