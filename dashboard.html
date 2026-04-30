@@ -1389,12 +1389,12 @@ function renderPipeList(){
   const totalMar=filtered.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
   const totalIb=filtered.reduce((s,r)=>s+(parseFloat(r['IB(-)'])||0),0);
 
-  // KPI 업데이트 (필터 연동)
-  document.getElementById('pipeKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">건수</div><div class="kpi-val" style="color:var(--accent)">${filtered.length}건</div><div class="kpi-sub neu">선택 조건 기준</div></div>
-    <div class="kpi"><div class="kpi-label">계약금액 합계</div><div class="kpi-val">${fmt(totalRev)}</div><div class="kpi-sub neu">선택 조건 기준</div></div>
-    <div class="kpi"><div class="kpi-label">예상마진 합계</div><div class="kpi-val" style="color:var(--green)">${fmt(totalMar)}</div><div class="kpi-sub neu">선택 조건 기준</div></div>
-    <div class="kpi"><div class="kpi-label">IB(-) 합계</div><div class="kpi-val" style="color:var(--red)">${fmt(totalIb)}</div><div class="kpi-sub neu">순마진 ${fmt(totalMar-totalIb)}</div></div>
+  // 요약 카드
+  document.getElementById('pipeListSummary').innerHTML=`
+    <div class="pipe-summary-item"><div class="pipe-summary-label">건수</div><div class="pipe-summary-val">${filtered.length}건</div></div>
+    <div class="pipe-summary-item"><div class="pipe-summary-label">계약금액 합계</div><div class="pipe-summary-val" style="color:var(--accent)">${fmt(totalRev)}</div></div>
+    <div class="pipe-summary-item"><div class="pipe-summary-label">예상마진 합계</div><div class="pipe-summary-val" style="color:var(--green)">${fmt(totalMar)}</div></div>
+    <div class="pipe-summary-item"><div class="pipe-summary-label">IB(-) 합계</div><div class="pipe-summary-val" style="color:var(--red)">${fmt(totalIb)}</div></div>
   `;
 
   // 리스트
