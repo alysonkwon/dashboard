@@ -223,6 +223,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <button class="tab" onclick="switchTab('pipeline')">파이프라인</button>
     <button class="tab" onclick="switchTab('vendor')">벤더 분석</button>
     <button class="tab" onclick="switchTab('ib')">인터빌링</button>
+    <button class="tab" onclick="switchTab('project')">프로젝트</button>
   </div>
 
   <!-- 전체 요약 -->
@@ -525,6 +526,49 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     </div>
   </div>
 
+  <!-- 프로젝트 -->
+  <div class="panel" id="panel-project">
+
+    <!-- 프로젝트 선택 -->
+    <div class="card" style="padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:10pt;font-weight:500;color:var(--muted);">프로젝트 선택</span>
+        <select id="projectSelect" onchange="renderProject()"
+          style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);min-width:280px;cursor:pointer;">
+          <option value="">-- 프로젝트를 선택해주세요 --</option>
+        </select>
+        <span id="projectCount" style="font-size:10pt;color:var(--muted);"></span>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-grid" id="projectKpi" style="display:none;"></div>
+
+    <!-- 분기별 / 월별 테이블 -->
+    <div class="card" id="projectTableCard" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div class="card-title" style="margin-bottom:0;">계산서 발행 일정</div>
+        <div style="display:flex;gap:6px;">
+          <div class="filter-wrap">
+            <button class="f-btn proj-view-btn active" data-val="quarter" onclick="toggleProjectView(this)">분기별</button>
+            <button class="f-btn proj-view-btn" data-val="month" onclick="toggleProjectView(this)">월별</button>
+          </div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead id="projectTableHead"></thead>
+          <tbody id="projectTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 빈 상태 -->
+    <div id="projectEmpty" style="text-align:center;padding:48px;color:var(--muted);font-size:13px;">
+      프로젝트를 선택해주세요
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -631,7 +675,7 @@ function fmtDate(val){
 
 function switchTab(name){
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['summary','yoy','pipeline','vendor','ib'][i]===name);
+    t.classList.toggle('active',['summary','yoy','pipeline','vendor','ib','project'][i]===name);
   });
   document.querySelectorAll('.panel').forEach(p=>{
     p.classList.toggle('active',p.id==='panel-'+name);
@@ -1626,8 +1670,181 @@ loadFX();
 loadData().then(()=>{
   loadPipeList();
   loadIb();
+  loadProjectTab();
 });
 setInterval(loadFX,60000);
+
+// ── 프로젝트 탭 ──────────────────────────────────
+let projectRawData=[];
+let projectViewMode='quarter'; // quarter | month
+
+function toggleProjectView(btn){
+  document.querySelectorAll('.proj-view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  projectViewMode=btn.dataset.val;
+  renderProject();
+}
+
+async function loadProjectTab(){
+  try{
+    const raw=cachedRaw.length>0?cachedRaw:await fetchSheet('RAW');
+    // 프로젝트명으로 묶기 (중복 제거)
+    const projects=[...new Set(
+      raw.filter(r=>r['프로젝트명']&&String(r['회계년도'])===String(BASE_YEAR))
+         .map(r=>String(r['프로젝트명']).trim())
+    )].filter(Boolean).sort();
+
+    projectRawData=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR));
+
+    const sel=document.getElementById('projectSelect');
+    sel.innerHTML='<option value="">-- 프로젝트를 선택해주세요 --</option>';
+    projects.forEach(p=>{
+      const opt=document.createElement('option');
+      opt.value=p; opt.textContent=p;
+      sel.appendChild(opt);
+    });
+    document.getElementById('projectCount').textContent=`총 ${projects.length}개 프로젝트`;
+  }catch(e){
+    console.error('프로젝트 탭 로드 실패',e);
+  }
+}
+
+function renderProject(){
+  const sel=document.getElementById('projectSelect');
+  const pjName=sel.value;
+  const kpiEl=document.getElementById('projectKpi');
+  const tableCard=document.getElementById('projectTableCard');
+  const emptyEl=document.getElementById('projectEmpty');
+
+  if(!pjName){
+    kpiEl.style.display='none';
+    tableCard.style.display='none';
+    emptyEl.style.display='block';
+    return;
+  }
+
+  const rows=projectRawData.filter(r=>String(r['프로젝트명']).trim()===pjName);
+  if(rows.length===0){
+    emptyEl.style.display='block';
+    kpiEl.style.display='none';
+    tableCard.style.display='none';
+    return;
+  }
+
+  emptyEl.style.display='none';
+  kpiEl.style.display='grid';
+  tableCard.style.display='block';
+
+  function getIbR(r){
+    const yr=String(r['회계년도']);
+    if(yr==='2025') return parseFloat(r['IB(-)'])||0;
+    return parseFloat(r['Interbilling'])||0;
+  }
+
+  const totalRev=rows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+  const totalMat=rows.reduce((s,r)=>s+(parseFloat(r['예상 매입'])||0),0);
+  const totalGm=rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+  const doneRows=rows.filter(r=>r['상태']==='100%(Invoice)');
+  const doneRev=doneRows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+  const doneGm=doneRows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+  const pendRev=totalRev-doneRev;
+  const pendGm=totalGm-doneGm;
+
+  // KPI
+  kpiEl.innerHTML=`
+    <div class="kpi"><div class="kpi-label">전체 계약금액</div><div class="kpi-val">${fmt(totalRev)}</div><div class="kpi-sub neu">${rows.length}건</div></div>
+    <div class="kpi"><div class="kpi-label">전체 마진</div><div class="kpi-val" style="color:var(--accent)">${fmt(totalGm)}</div><div class="kpi-sub neu">매입 ${fmt(totalMat)}</div></div>
+    <div class="kpi"><div class="kpi-label">발행 완료 (100%)</div><div class="kpi-val" style="color:var(--green)">${fmt(doneGm)}</div><div class="kpi-sub neu">계약금액 ${fmt(doneRev)}</div></div>
+    <div class="kpi"><div class="kpi-label">발행 예정</div><div class="kpi-val" style="color:var(--amber)">${fmt(pendGm)}</div><div class="kpi-sub neu">계약금액 ${fmt(pendRev)}</div></div>
+  `;
+
+  // 테이블
+  const thead=document.getElementById('projectTableHead');
+  const tbody=document.getElementById('projectTableBody');
+  tbody.innerHTML='';
+
+  if(projectViewMode==='quarter'){
+    // 분기별
+    thead.innerHTML=`<tr>
+      <th style="text-align:center;">분기</th>
+      <th style="text-align:center;">건수</th>
+      <th style="text-align:right;">계약금액</th>
+      <th style="text-align:right;">매입금액</th>
+      <th style="text-align:right;">마진</th>
+      <th style="text-align:right;">발행완료 마진</th>
+      <th style="text-align:right;">예정 마진</th>
+    </tr>`;
+
+    const QS=['Q1','Q2','Q3','Q4'];
+    let totRev=0,totMat=0,totGm=0,totDoneGm=0,totPendGm=0,totCnt=0;
+    QS.forEach(q=>{
+      const qRows=rows.filter(r=>r['회계분기']===q);
+      if(qRows.length===0) return;
+      const rev=qRows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+      const mat=qRows.reduce((s,r)=>s+(parseFloat(r['예상 매입'])||0),0);
+      const gm=qRows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+      const dGm=qRows.filter(r=>r['상태']==='100%(Invoice)').reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+      const pGm=gm-dGm;
+      totRev+=rev;totMat+=mat;totGm+=gm;totDoneGm+=dGm;totPendGm+=pGm;totCnt+=qRows.length;
+      tbody.innerHTML+=`<tr>
+        <td style="text-align:center;font-weight:500;">${q}</td>
+        <td style="text-align:center;color:var(--muted);">${qRows.length}건</td>
+        <td style="text-align:right;">${fmt(rev)}</td>
+        <td style="text-align:right;color:var(--muted);">${fmt(mat)}</td>
+        <td style="text-align:right;">${fmt(gm)}</td>
+        <td style="text-align:right;color:var(--green);font-weight:600;">${dGm?fmt(dGm):'—'}</td>
+        <td style="text-align:right;color:var(--amber);">${pGm?fmt(pGm):'—'}</td>
+      </tr>`;
+    });
+    tbody.innerHTML+=`<tr style="border-top:2px solid var(--border);font-weight:700;">
+      <td style="text-align:center;">합계</td>
+      <td style="text-align:center;color:var(--muted);">${totCnt}건</td>
+      <td style="text-align:right;">${fmt(totRev)}</td>
+      <td style="text-align:right;color:var(--muted);">${fmt(totMat)}</td>
+      <td style="text-align:right;">${fmt(totGm)}</td>
+      <td style="text-align:right;color:var(--green);">${fmt(totDoneGm)}</td>
+      <td style="text-align:right;color:var(--amber);">${fmt(totPendGm)}</td>
+    </tr>`;
+
+  } else {
+    // 월별
+    thead.innerHTML=`<tr>
+      <th style="text-align:center;">분기</th>
+      <th style="text-align:center;">마감일자</th>
+      <th style="text-align:right;">계약금액</th>
+      <th style="text-align:right;">매입금액</th>
+      <th style="text-align:right;">마진</th>
+      <th style="text-align:center;">상태</th>
+    </tr>`;
+
+    const STAGE_COLOR_MAP={
+      '100%(Invoice)':{bg:'rgba(22,163,74,.1)',color:'#16a34a'},
+      '90%(Won)':{bg:'rgba(8,145,178,.1)',color:'#0891b2'},
+      '75%(Commit)':{bg:'rgba(217,119,6,.1)',color:'#d97706'},
+      '50%(Best)':{bg:'rgba(37,99,235,.1)',color:'#2563eb'},
+      '25% (Pipeline)':{bg:'rgba(136,144,168,.1)',color:'#8890a8'},
+      '0%(Lost)':{bg:'rgba(220,38,38,.1)',color:'#dc2626'},
+    };
+
+    // 마감일자 오름차순 정렬
+    const sorted=[...rows].sort((a,b)=>fmtDate(a['마감일자']).localeCompare(fmtDate(b['마감일자'])));
+    sorted.forEach(r=>{
+      const rev=parseFloat(r['계약 금액'])||0;
+      const mat=parseFloat(r['예상 매입'])||0;
+      const gm=parseFloat(r['예상 마진'])||0;
+      const stage=r['상태']||'—';
+      const sc=STAGE_COLOR_MAP[stage]||{bg:'rgba(136,144,168,.1)',color:'#8890a8'};
+      tbody.innerHTML+=`<tr>
+        <td style="text-align:center;color:var(--muted);">${r['회계분기']||'—'}</td>
+        <td style="text-align:center;font-family:'DM Mono';font-size:11px;color:var(--muted);">${fmtDate(r['마감일자'])}</td>
+        <td style="text-align:right;">${fmt(rev)}</td>
+        <td style="text-align:right;color:var(--muted);">${fmt(mat)}</td>
+        <td style="text-align:right;color:${stage==='100%(Invoice)'?'var(--green)':'var(--text)'};">${fmt(gm)}</td>
+        <td style="text-align:center;"><span class="stage-pill" style="background:${sc.bg};color:${sc.color};">${stage}</span></td>
+      </tr>`;
+    });
+  }
+}
 </script>
 </body>
 </html>
