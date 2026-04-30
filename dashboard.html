@@ -529,43 +529,57 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <!-- 프로젝트 -->
   <div class="panel" id="panel-project">
 
-    <!-- 프로젝트 선택 -->
+    <!-- 고객사 선택 -->
     <div class="card" style="padding:14px 18px;">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <span style="font-size:10pt;font-weight:500;color:var(--muted);">프로젝트 선택</span>
-        <select id="projectSelect" onchange="renderProject()"
-          style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);min-width:280px;cursor:pointer;">
-          <option value="">-- 프로젝트를 선택해주세요 --</option>
+        <span style="font-size:10pt;font-weight:500;color:var(--muted);">고객사</span>
+        <select id="customerSelect" onchange="onCustomerChange()"
+          style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);min-width:220px;cursor:pointer;">
+          <option value="">-- 고객사 선택 --</option>
         </select>
         <span id="projectCount" style="font-size:10pt;color:var(--muted);"></span>
       </div>
     </div>
 
-    <!-- KPI -->
-    <div class="kpi-grid" id="projectKpi" style="display:none;"></div>
+    <!-- 프로젝트 리스트 -->
+    <div id="projectListWrap" style="display:none;">
+      <div id="projectList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;"></div>
+    </div>
 
-    <!-- 분기별 / 월별 테이블 -->
-    <div class="card" id="projectTableCard" style="display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-        <div class="card-title" style="margin-bottom:0;">계산서 발행 일정</div>
-        <div style="display:flex;gap:6px;">
+    <!-- 프로젝트 상세 -->
+    <div id="projectDetailWrap" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <button onclick="backToList()"
+          style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;">
+          ← 목록으로
+        </button>
+        <span id="projectDetailName" style="font-size:12pt;font-weight:600;color:var(--text);"></span>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid" id="projectKpi"></div>
+
+      <!-- 분기별 / 월별 테이블 -->
+      <div class="card" id="projectTableCard">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div class="card-title" style="margin-bottom:0;">계산서 발행 일정</div>
           <div class="filter-wrap">
             <button class="f-btn proj-view-btn active" data-val="quarter" onclick="toggleProjectView(this)">분기별</button>
             <button class="f-btn proj-view-btn" data-val="month" onclick="toggleProjectView(this)">월별</button>
           </div>
         </div>
-      </div>
-      <div style="overflow-x:auto;">
-        <table class="tbl">
-          <thead id="projectTableHead"></thead>
-          <tbody id="projectTableBody"></tbody>
-        </table>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead id="projectTableHead"></thead>
+            <tbody id="projectTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <!-- 빈 상태 -->
     <div id="projectEmpty" style="text-align:center;padding:48px;color:var(--muted);font-size:13px;">
-      프로젝트를 선택해주세요
+      고객사를 선택해주세요
     </div>
   </div>
 
@@ -1688,52 +1702,107 @@ function toggleProjectView(btn){
 async function loadProjectTab(){
   try{
     const raw=cachedRaw.length>0?cachedRaw:await fetchSheet('RAW');
-    // 프로젝트명으로 묶기 (중복 제거)
-    const projects=[...new Set(
-      raw.filter(r=>r['프로젝트명']&&String(r['회계년도'])===String(BASE_YEAR))
-         .map(r=>String(r['프로젝트명']).trim())
-    )].filter(Boolean).sort();
-
     projectRawData=raw.filter(r=>String(r['회계년도'])===String(BASE_YEAR));
 
-    const sel=document.getElementById('projectSelect');
-    sel.innerHTML='<option value="">-- 프로젝트를 선택해주세요 --</option>';
-    projects.forEach(p=>{
+    // 고객사 목록 (중복 제거, 정렬)
+    const customers=[...new Set(
+      projectRawData.filter(r=>r['고객사명']).map(r=>String(r['고객사명']).trim())
+    )].filter(Boolean).sort();
+
+    const cSel=document.getElementById('customerSelect');
+    cSel.innerHTML='<option value="">-- 고객사 선택 --</option>';
+    customers.forEach(c=>{
       const opt=document.createElement('option');
-      opt.value=p; opt.textContent=p;
-      sel.appendChild(opt);
+      opt.value=c; opt.textContent=c;
+      cSel.appendChild(opt);
     });
-    document.getElementById('projectCount').textContent=`총 ${projects.length}개 프로젝트`;
+    document.getElementById('projectCount').textContent=`고객사 ${customers.length}개`;
   }catch(e){
     console.error('프로젝트 탭 로드 실패',e);
   }
 }
 
-function renderProject(){
-  const sel=document.getElementById('projectSelect');
-  const pjName=sel.value;
-  const kpiEl=document.getElementById('projectKpi');
-  const tableCard=document.getElementById('projectTableCard');
+function onCustomerChange(){
+  const customer=document.getElementById('customerSelect').value;
+  const listWrap=document.getElementById('projectListWrap');
+  const detailWrap=document.getElementById('projectDetailWrap');
   const emptyEl=document.getElementById('projectEmpty');
 
-  if(!pjName){
-    kpiEl.style.display='none';
-    tableCard.style.display='none';
+  detailWrap.style.display='none';
+
+  if(!customer){
+    listWrap.style.display='none';
     emptyEl.style.display='block';
+    emptyEl.textContent='고객사를 선택해주세요';
+    document.getElementById('projectCount').textContent='';
     return;
   }
+
+  // 해당 고객사 프로젝트 목록
+  const projects=[...new Set(
+    projectRawData.filter(r=>String(r['고객사명']).trim()===customer&&r['프로젝트명'])
+      .map(r=>String(r['프로젝트명']).trim())
+  )].filter(Boolean).sort();
+
+  document.getElementById('projectCount').textContent=`프로젝트 ${projects.length}개`;
+  emptyEl.style.display='none';
+  listWrap.style.display='block';
+
+  // 프로젝트 카드 리스트 렌더
+  const listEl=document.getElementById('projectList');
+  listEl.innerHTML='';
+
+  projects.forEach(pjName=>{
+    const rows=projectRawData.filter(r=>String(r['프로젝트명']).trim()===pjName);
+    const totalRev=rows.reduce((s,r)=>s+(parseFloat(r['계약 금액'])||0),0);
+    const totalGm=rows.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    const doneGm=rows.filter(r=>r['상태']==='100%(Invoice)').reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
+    const pct=totalGm?Math.round(doneGm/totalGm*100):0;
+    const pctColor=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--accent)';
+    const qs=[...new Set(rows.map(r=>r['회계분기']).filter(Boolean))].sort().join(' · ');
+
+    const card=document.createElement('div');
+    card.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.04);transition:all .15s;';
+    card.onmouseenter=()=>{card.style.borderColor='var(--accent)';card.style.boxShadow='0 2px 8px rgba(37,99,235,.15)';};
+    card.onmouseleave=()=>{card.style.borderColor='var(--border)';card.style.boxShadow='0 1px 4px rgba(0,0,0,.04)';};
+    card.onclick=()=>renderProject(pjName);
+    card.innerHTML=`
+      <div style="font-size:11pt;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4;">${pjName}</div>
+      <div style="font-size:10pt;color:var(--muted);margin-bottom:10px;">${qs}</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:10pt;color:var(--muted);">계약금액</span>
+        <span style="font-size:10pt;font-family:'DM Mono';font-weight:600;">${fmt(totalRev)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:10pt;color:var(--muted);">마진</span>
+        <span style="font-size:10pt;font-family:'DM Mono';font-weight:600;color:var(--accent);">${fmt(totalGm)}</span>
+      </div>
+      <div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;">
+        <div style="width:${Math.min(pct,100)}%;height:100%;background:${pctColor};border-radius:99px;transition:width .7s;"></div>
+      </div>
+      <div style="text-align:right;font-size:10pt;color:${pctColor};font-weight:600;margin-top:4px;">발행완료 ${pct}%</div>
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+function backToList(){
+  document.getElementById('projectDetailWrap').style.display='none';
+  document.getElementById('projectListWrap').style.display='block';
+}
+
+function renderProject(pjName){
+  const listWrap=document.getElementById('projectListWrap');
+  const detailWrap=document.getElementById('projectDetailWrap');
+
+  if(!pjName) return;
+
+  listWrap.style.display='none';
+  detailWrap.style.display='block';
+  document.getElementById('projectDetailName').textContent=pjName;
 
   const rows=projectRawData.filter(r=>String(r['프로젝트명']).trim()===pjName);
-  if(rows.length===0){
-    emptyEl.style.display='block';
-    kpiEl.style.display='none';
-    tableCard.style.display='none';
-    return;
-  }
-
-  emptyEl.style.display='none';
-  kpiEl.style.display='grid';
-  tableCard.style.display='block';
+  if(rows.length===0) return;
 
   function getIbR(r){
     const yr=String(r['회계년도']);
