@@ -379,37 +379,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <!-- KPI (필터 연동) -->
     <div class="kpi-grid" id="pipeKpi"></div>
 
-    <!-- 필터 -->
-    <div class="card" style="padding:14px 18px;">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span class="filter-label">분기</span>
-        <div class="filter-wrap">
-          <button class="f-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
-          <button class="f-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
-          <button class="f-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
-          <button class="f-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
-        </div>
-        <span class="filter-label" style="margin-left:4px;">Stage</span>
-        <div class="filter-wrap">
-          <button class="f-btn s-btn" data-val="0%(Lost)" onclick="toggleFilter('s',this)">0%</button>
-          <button class="f-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)">25%</button>
-          <button class="f-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)">50%</button>
-          <button class="f-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)">75%</button>
-          <button class="f-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)">90%</button>
-          <button class="f-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)">100%</button>
-        </div>
-        <span class="filter-label" style="margin-left:4px;">영업구분</span>
-        <div class="filter-wrap">
-          <button class="f-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
-          <button class="f-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
-          <button class="f-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
-          <button class="f-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
-        </div>
-        <button class="reset-btn" onclick="selectAllFilters()">전체 선택</button>
-        <button class="reset-btn" onclick="clearAllFilters()">전체 해제</button>
-      </div>
-    </div>
-
     <!-- 깔때기 차트 + 분기별 차트 (필터 미연동) -->
     <div class="grid2">
       <div class="card">
@@ -420,6 +389,56 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div class="card-title">분기별 파이프라인 예상마진 (<span id='baseyear_pipe'></span>년)</div>
         <div style="position:relative;height:240px;"><canvas id="pipeChart" role="img" aria-label="파이프라인 분기별 현황"></canvas></div>
       </div>
+    </div>
+
+    <!-- 파이프라인 상세 리스트 -->
+    <div class="card">
+      <div style="margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:12px;">파이프라인 상세 리스트</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="filter-label">분기</span>
+          <div class="filter-wrap">
+            <button class="f-btn q-btn" data-val="Q1" onclick="toggleFilter('q',this)">Q1</button>
+            <button class="f-btn q-btn" data-val="Q2" onclick="toggleFilter('q',this)">Q2</button>
+            <button class="f-btn q-btn" data-val="Q3" onclick="toggleFilter('q',this)">Q3</button>
+            <button class="f-btn q-btn" data-val="Q4" onclick="toggleFilter('q',this)">Q4</button>
+          </div>
+          <span class="filter-label" style="margin-left:4px;">Stage</span>
+          <div class="filter-wrap">
+            <button class="f-btn s-btn" data-val="0%(Lost)" onclick="toggleFilter('s',this)">0%</button>
+            <button class="f-btn s-btn" data-val="25% (Pipeline)" onclick="toggleFilter('s',this)">25%</button>
+            <button class="f-btn s-btn" data-val="50%(Best)" onclick="toggleFilter('s',this)">50%</button>
+            <button class="f-btn s-btn" data-val="75%(Commit)" onclick="toggleFilter('s',this)">75%</button>
+            <button class="f-btn s-btn" data-val="90%(Won)" onclick="toggleFilter('s',this)">90%</button>
+            <button class="f-btn s-btn" data-val="100%(Invoice)" onclick="toggleFilter('s',this)">100%</button>
+          </div>
+          <span class="filter-label" style="margin-left:4px;">영업구분</span>
+          <div class="filter-wrap">
+            <button class="f-btn t-btn" data-val="New" onclick="toggleFilter('t',this)">New</button>
+            <button class="f-btn t-btn" data-val="Renewal" onclick="toggleFilter('t',this)">Renewal</button>
+            <button class="f-btn t-btn" data-val="Renewal(1st)" onclick="toggleFilter('t',this)">R(1st)</button>
+            <button class="f-btn t-btn" data-val="1time" onclick="toggleFilter('t',this)">1time</button>
+          </div>
+          <button class="reset-btn" onclick="selectAllFilters()">전체 선택</button>
+          <button class="reset-btn" onclick="clearAllFilters()">전체 해제</button>
+        </div>
+      </div>
+      <div id="pipeListSummary" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"></div>
+      <div style="overflow-x:auto;">
+        <table class="tbl" id="pipeListTable">
+          <thead><tr>
+            <th style="text-align:center;">Stage</th>
+            <th style="text-align:center;">마감일자</th>
+            <th style="text-align:center;">고객사명</th>
+            <th style="text-align:left;">프로젝트명</th>
+            <th style="text-align:center;">제조사</th>
+            <th style="text-align:right;">계약금액</th>
+            <th style="text-align:right;">예상마진</th>
+          </tr></thead>
+          <tbody id="pipeListBody"></tbody>
+        </table>
+      </div>
+      <div id="pipeListEmpty" style="text-align:center;padding:32px;color:var(--muted);font-size:13px;display:none;">필터를 선택하면 리스트가 표시돼요</div>
     </div>
   </div>
 
@@ -1359,7 +1378,6 @@ function clearAllFilters(){
 }
 
 function renderPipeList(){
-  // 각 필터 그룹: 선택된 게 없으면 전체 통과
   const filtered=pipeRawData.filter(r=>{
     const qOk=activeQ.size===0||activeQ.has(r['회계분기']);
     const sOk=activeS.size===0||activeS.has(r['상태']);
@@ -1371,28 +1389,52 @@ function renderPipeList(){
   const totalMar=filtered.reduce((s,r)=>s+(parseFloat(r['예상 마진'])||0),0);
   const totalIb=filtered.reduce((s,r)=>s+(parseFloat(r['IB(-)'])||0),0);
 
+  // KPI 업데이트 (필터 연동)
   document.getElementById('pipeKpi').innerHTML=`
-    <div class="kpi">
-      <div class="kpi-label">건수</div>
-      <div class="kpi-val" style="color:var(--accent)">${filtered.length}건</div>
-      <div class="kpi-sub neu">${activeQ.size===0&&activeS.size===0&&activeT.size===0?'전체':'필터 적용'}</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">계약금액 합계</div>
-      <div class="kpi-val">${fmt(totalRev)}</div>
-      <div class="kpi-sub neu">선택 조건 기준</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">예상마진 합계</div>
-      <div class="kpi-val" style="color:var(--green)">${fmt(totalMar)}</div>
-      <div class="kpi-sub neu">선택 조건 기준</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">IB(-) 합계</div>
-      <div class="kpi-val" style="color:var(--red)">${fmt(totalIb)}</div>
-      <div class="kpi-sub neu">순마진 ${fmt(totalMar-totalIb)}</div>
-    </div>
+    <div class="kpi"><div class="kpi-label">건수</div><div class="kpi-val" style="color:var(--accent)">${filtered.length}건</div><div class="kpi-sub neu">선택 조건 기준</div></div>
+    <div class="kpi"><div class="kpi-label">계약금액 합계</div><div class="kpi-val">${fmt(totalRev)}</div><div class="kpi-sub neu">선택 조건 기준</div></div>
+    <div class="kpi"><div class="kpi-label">예상마진 합계</div><div class="kpi-val" style="color:var(--green)">${fmt(totalMar)}</div><div class="kpi-sub neu">선택 조건 기준</div></div>
+    <div class="kpi"><div class="kpi-label">IB(-) 합계</div><div class="kpi-val" style="color:var(--red)">${fmt(totalIb)}</div><div class="kpi-sub neu">순마진 ${fmt(totalMar-totalIb)}</div></div>
   `;
+
+  // 리스트
+  const noneSelected=activeQ.size===0&&activeS.size===0&&activeT.size===0;
+  const empty=document.getElementById('pipeListEmpty');
+  const tbody=document.getElementById('pipeListBody');
+
+  if(noneSelected){
+    tbody.innerHTML='';
+    empty.style.display='block';
+    empty.textContent='필터를 선택하면 리스트가 표시돼요';
+    return;
+  }
+
+  if(filtered.length===0){tbody.innerHTML='';empty.style.display='block';empty.textContent='해당 조건의 데이터가 없어요';return;}
+  empty.style.display='none';
+
+  filtered.sort((a,b)=>{
+    const da=fmtDate(a['마감일자']), db=fmtDate(b['마감일자']);
+    if(da==='—'&&db==='—') return 0;
+    if(da==='—') return 1;
+    if(db==='—') return -1;
+    return da.localeCompare(db);
+  });
+
+  tbody.innerHTML=filtered.map(r=>{
+    const stage=r['상태']||'—';
+    const sc=STAGE_COLORS[stage]||{bg:'rgba(136,144,168,.1)',color:'#8890a8'};
+    const rev=parseFloat(r['계약 금액'])||0;
+    const mar=parseFloat(r['예상 마진'])||0;
+    return `<tr>
+      <td style="text-align:center;"><span class="stage-pill" style="background:${sc.bg};color:${sc.color}">${stage}</span></td>
+      <td style="text-align:center;font-family:'DM Mono';font-size:11px;color:var(--muted);">${fmtDate(r['마감일자'])}</td>
+      <td style="text-align:center;font-family:'Noto Sans KR';font-weight:500;color:var(--text);">${r['고객사명']||'—'}</td>
+      <td style="text-align:left;font-family:'Noto Sans KR';color:var(--muted);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r['프로젝트명']||'—'}</td>
+      <td style="text-align:center;font-family:'Noto Sans KR';color:var(--muted);">${r['제조사']||'—'}</td>
+      <td style="text-align:right;" class="${rev<0?'red':''}">${fmt(rev)}</td>
+      <td style="text-align:right;" class="${mar<0?'red':'grn'}">${fmt(mar)}</td>
+    </tr>`;
+  }).join('');
 }
 
 // RAW 데이터를 전역으로 캐싱 (중복 로드 방지)
