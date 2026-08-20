@@ -6,6 +6,7 @@
 <title>영업 실적 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/css/SpoqaHanSansNeo.css" rel="stylesheet">
 
 <style>
 /* ── 비밀번호 화면 ── */
@@ -13,25 +14,25 @@
   position:fixed;inset:0;z-index:9999;
   background:#f8f9fc;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-family:'Noto Sans KR',sans-serif;
+  font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;
 }
 #pwBox{
   background:#fff;border:1px solid #e2e6ef;border-radius:16px;
   padding:40px 36px;box-shadow:0 4px 24px rgba(0,0,0,.08);
   width:100%;max-width:360px;text-align:center;
 }
-#pwBox h2{font-size:16pt;font-weight:700;color:#1a1d2e;margin-bottom:6px;}
-#pwBox p{font-size:10pt;color:#8890a8;margin-bottom:24px;}
+#pwBox h2{font-size:16pt;font-weight:700;color:#0d1117;margin-bottom:6px;}
+#pwBox p{font-size:10pt;color:#4a5568;margin-bottom:24px;}
 #pwInput{
   width:100%;padding:10px 14px;border:1px solid #e2e6ef;border-radius:8px;
-  font-family:'Noto Sans KR',sans-serif;font-size:11pt;color:#1a1d2e;
+  font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:11pt;color:#0d1117;
   outline:none;text-align:center;letter-spacing:4px;margin-bottom:12px;
   transition:border .15s;
 }
 #pwInput:focus{border-color:#2563eb;}
 #pwBtn{
   width:100%;padding:11px;background:#2563eb;color:#fff;border:none;
-  border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:11pt;
+  border-radius:8px;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:11pt;
   font-weight:600;cursor:pointer;transition:background .15s;
 }
 #pwBtn:hover{background:#1d4ed8;}
@@ -72,13 +73,13 @@ function checkPw(){
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#f0f2f7;--surface:#ffffff;--surface2:#f1f3f8;--border:#e2e6ef;
-  --text:#1a1d2e;--muted:#8890a8;--accent:#002D68;--accent2:#1a4a9e;
+  --text:#0d1117;--muted:#4a5568;--accent:#002D68;--accent2:#1a4a9e;
   --green:#16a34a;--red:#dc2626;--amber:#d97706;--teal:#0891b2;
   --sidebar-w:220px;--sidebar-collapsed:60px;
 }
 
 /* ── 레이아웃 ── */
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:10pt;min-height:100vh;display:flex;}
+body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10pt;min-height:100vh;display:flex;}
 
 /* 사이드바 */
 #sidebar{
@@ -120,7 +121,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .sb-toggle{
   display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
   cursor:pointer;color:rgba(255,255,255,.6);font-size:10pt;transition:all .15s;
-  background:none;border:none;width:100%;font-family:'Noto Sans KR',sans-serif;
+  background:none;border:none;width:100%;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;
 }
 .sb-toggle:hover{background:rgba(255,255,255,.1);color:#fff;}
 .sb-toggle-icon{font-size:15px;flex-shrink:0;width:20px;text-align:center;transition:transform .25s;}
@@ -206,17 +207,17 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .yoy-pipe{font-size:10pt;color:var(--amber);margin-top:4px;text-align:center;font-weight:500;}
 
 .tbl{width:100%;border-collapse:collapse;}
-.tbl th{font-size:12pt;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);font-weight:600;white-space:nowrap;background:var(--surface2);font-family:'Noto Sans KR',sans-serif;}
+.tbl th{font-size:12pt;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);font-weight:600;white-space:nowrap;background:var(--surface2);font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .tbl th:first-child{border-radius:6px 0 0 0;}
 .tbl th:last-child{border-radius:0 6px 0 0;}
 .tbl td{font-size:10pt;padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;color:var(--text);}
-.tbl td.txt{font-family:'Noto Sans KR',sans-serif;color:var(--muted);text-align:left;}
+.tbl td.txt{font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;color:var(--muted);text-align:left;}
 .tbl tr:last-child td{border-bottom:none;font-weight:700;}
 .tbl tr:hover td{background:var(--surface2);}
 .tbl .acc{color:var(--accent)}.tbl .grn{color:var(--green)}.tbl .red{color:var(--red)}.tbl .amb{color:var(--amber)}
 
 .vendor-item{margin-bottom:11px;}
-.vendor-name{font-size:10pt;color:var(--text);margin-bottom:3px;font-weight:500;font-family:'Noto Sans KR',sans-serif;}
+.vendor-name{font-size:10pt;color:var(--text);margin-bottom:3px;font-weight:500;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .vendor-bars{display:flex;gap:3px;height:11px;}
 .vbar{height:100%;border-radius:2px;min-width:2px;transition:width .7s cubic-bezier(.4,0,.2,1);}
 .vendor-vals{display:flex;gap:10px;margin-top:3px;font-size:10pt;font-family:'DM Mono',monospace;}
@@ -226,17 +227,17 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
 /* 필터 버튼 */
 .filter-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-.filter-label{font-size:10pt;color:var(--muted);font-weight:500;min-width:40px;font-family:'Noto Sans KR',sans-serif;}
+.filter-label{font-size:10pt;color:var(--muted);font-weight:500;min-width:40px;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .filter-wrap{display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);}
-.f-btn{background:transparent;border:none;border-radius:6px;padding:5px 11px;font-size:10pt;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'Noto Sans KR',sans-serif;}
+.f-btn{background:transparent;border:none;border-radius:6px;padding:5px 11px;font-size:10pt;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .f-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(0,45,104,.25);}
 .f-btn:hover:not(.active){background:var(--surface);color:var(--text);}
-.reset-btn{font-size:10pt;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;}
+.reset-btn{font-size:10pt;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;transition:all .15s;}
 .reset-btn:hover{border-color:var(--accent);color:var(--accent);}
 
-.stage-pill{display:inline-block;font-size:10pt;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;}
+.stage-pill{display:inline-block;font-size:10pt;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .pipe-summary-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;}
-.pipe-summary-label{font-size:10pt;color:var(--muted);margin-bottom:3px;font-weight:500;font-family:'Noto Sans KR',sans-serif;}
+.pipe-summary-label{font-size:10pt;color:var(--muted);margin-bottom:3px;font-weight:500;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .pipe-summary-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;}
 
 @media(max-width:768px){
@@ -293,22 +294,22 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <div class="sb-section">MENU</div>
   <ul class="sb-nav">
     <li class="sb-item active" onclick="switchTab('summary',this)">
-      <span class="sb-icon">📊</span><span class="sb-label">전체 요약</span>
+      <span class="sb-icon">📊</span><span class="sb-label">Dashboard</span>
     </li>
     <li class="sb-item" onclick="switchTab('yoy',this)">
-      <span class="sb-icon">📈</span><span class="sb-label">YoY 비교</span>
+      <span class="sb-icon">📈</span><span class="sb-label">YoY Performance</span>
     </li>
     <li class="sb-item" onclick="switchTab('pipeline',this)">
-      <span class="sb-icon">🔀</span><span class="sb-label">파이프라인</span>
+      <span class="sb-icon">🔀</span><span class="sb-label">Pipeline</span>
     </li>
     <li class="sb-item" onclick="switchTab('vendor',this)">
-      <span class="sb-icon">🏢</span><span class="sb-label">벤더 분석</span>
+      <span class="sb-icon">🏢</span><span class="sb-label">Vendor / Product</span>
     </li>
     <li class="sb-item" onclick="switchTab('ib',this)">
-      <span class="sb-icon">💱</span><span class="sb-label">인터빌링</span>
+      <span class="sb-icon">💱</span><span class="sb-label">Interbilling</span>
     </li>
     <li class="sb-item" onclick="switchTab('project',this)">
-      <span class="sb-icon">📁</span><span class="sb-label">프로젝트</span>
+      <span class="sb-icon">📁</span><span class="sb-label">Project</span>
     </li>
   </ul>
   <div class="sb-bottom">
@@ -668,7 +669,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <button class="reset-btn" onclick="clearProjectYr()">전체 해제</button>
         <span style="font-size:10pt;font-weight:500;color:var(--muted);margin-left:8px;">고객사</span>
         <select id="customerSelect" onchange="onCustomerChange()"
-          style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);min-width:220px;cursor:pointer;">
+          style="font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10pt;padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);min-width:220px;cursor:pointer;">
           <option value="">-- 고객사 선택 --</option>
         </select>
         <span id="projectCount" style="font-size:10pt;color:var(--muted);"></span>
@@ -703,7 +704,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div id="projectDetailWrap" style="display:none;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
         <button onclick="backToList()"
-          style="font-family:'Noto Sans KR',sans-serif;font-size:10pt;padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--muted);cursor:pointer;">
+          style="font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10pt;padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--muted);cursor:pointer;">
           ← 목록으로
         </button>
         <span id="projectDetailName" style="font-size:12pt;font-weight:600;color:var(--text);"></span>
@@ -843,8 +844,8 @@ function toggleSidebar(){
 }
 
 const TAB_LABELS={
-  summary:'전체 요약', yoy:'YoY 비교', pipeline:'파이프라인',
-  vendor:'벤더 분석', ib:'인터빌링', project:'프로젝트'
+  summary:'Dashboard', yoy:'YoY Performance', pipeline:'Pipeline',
+  vendor:'Vendor / Product', ib:'Interbilling', project:'Project'
 };
 
 function switchTab(name, el){
@@ -998,13 +999,13 @@ async function loadData(){
       const gmAchv=tq.gm?gmIb/tq.gm*100:null;
       const achvStr=gmAchv!==null?`<span style="color:${achvColor(gmAchv)};font-weight:700;">${gmAchv.toFixed(1)}%</span>`:'—';
       const badge=d.isConfirmed
-        ?`<span style="font-family:'Noto Sans KR',sans-serif;font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(37,99,235,.1);color:var(--accent);">확정</span>`
+        ?`<span style="font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(37,99,235,.1);color:var(--accent);">확정</span>`
         :d.invCnt>0||d.pipeCnt>0
-          ?`<span style="font-family:'Noto Sans KR',sans-serif;font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(217,119,6,.1);color:var(--amber);">예측</span>`
+          ?`<span style="font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(217,119,6,.1);color:var(--amber);">예측</span>`
           :`<span style="color:var(--muted);">—</span>`;
       const rowBg=d.isConfirmed?'rgba(37,99,235,.02)':'rgba(217,119,6,.02)';
       tbody.innerHTML+=`<tr style="background:${rowBg};">
-        <td style="text-align:center;font-family:'Noto Sans KR',sans-serif;font-weight:500;">${q}</td>
+        <td style="text-align:center;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-weight:500;">${q}</td>
         <td style="text-align:center;color:var(--muted);">${tq.gm?fmt(tq.gm):'—'}</td>
         <td style="text-align:center;">${d.rev?fmt(d.rev):'—'}</td>
         <td style="text-align:center;">${d.gm?fmt(d.gm):'—'}</td>
@@ -1020,7 +1021,7 @@ async function loadData(){
     const gm26Achv=t26.gm?tot75gmIb/t26.gm*100:null;
     const yoyGm75=pct(tot75gm,s25.gm);
     tbody.innerHTML+=`<tr style="border-top:2px solid var(--border);background:rgba(37,99,235,.03);">
-      <td style="text-align:center;font-family:'Noto Sans KR',sans-serif;font-weight:700;">합계</td>
+      <td style="text-align:center;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-weight:700;">합계</td>
       <td style="text-align:center;color:var(--muted);font-weight:700;">${t26.gm?fmt(t26.gm):'—'}</td>
       <td style="text-align:center;font-weight:700;">${fmt(tot75rev)}</td>
       <td style="text-align:center;font-weight:700;">${fmt(tot75gm)}</td>
@@ -1061,8 +1062,8 @@ async function loadData(){
       const chartDefaults={responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false}},
         scales:{
-          x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:11}}},
-          y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:10},callback:v=>v+'억'}}
+          x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#4a5568',font:{size:11}}},
+          y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#4a5568',font:{size:10},callback:v=>v+'억'}}
         }
       };
       // 26년 분기별 GM 차트 (확정 vs 예측추가분)
@@ -1091,8 +1092,8 @@ async function loadData(){
           },
           layout:{padding:{top:24}},
           scales:{
-            x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:11}}},
-            y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:10},callback:v=>v+'억'},
+            x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#4a5568',font:{size:11}}},
+            y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#4a5568',font:{size:10},callback:v=>v+'억'},
                afterDataLimits(scale){scale.max=scale.max*1.18;}
             }
           }
@@ -1188,7 +1189,7 @@ async function loadData(){
       '90%(Won)':'#16a34a',
       '75%(Commit)':'#d97706',
       '50%(Best)':'#0891b2',
-      '25% (Pipeline)':'#8890a8',
+      '25% (Pipeline)':'#4a5568',
     };
     const pipe26={};
     allStages.forEach(s=>{
@@ -1405,8 +1406,8 @@ function renderYoyType(){
     responsive:true, maintainAspectRatio:false,
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}억`}}},
     scales:{
-      x:{grid:{display:false},ticks:{color:'#8890a8',font:{size:10}}},
-      y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#8890a8',font:{size:10},callback:v=>v+'억'}}
+      x:{grid:{display:false},ticks:{color:'#4a5568',font:{size:10}}},
+      y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#4a5568',font:{size:10},callback:v=>v+'억'}}
     }
   };
   const labels=['New','Renewal'];
@@ -1477,7 +1478,7 @@ function drawGauge(svgId, pct, _color){
     const tx=cx+(r-22)*Math.cos(a), ty=cy+(r-22)*Math.sin(a);
     const isBold=p===100;
     return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${isBold?'#16a34a':'#c0c8d8'}" stroke-width="${isBold?2:1.5}"/>
-            <text x="${tx.toFixed(1)}" y="${(ty+3).toFixed(1)}" text-anchor="middle" font-size="8" fill="${isBold?'#16a34a':'#8890a8'}" font-weight="${isBold?'700':'400'}">${p}%</text>`;
+            <text x="${tx.toFixed(1)}" y="${(ty+3).toFixed(1)}" text-anchor="middle" font-size="8" fill="${isBold?'#16a34a':'#4a5568'}" font-weight="${isBold?'700':'400'}">${p}%</text>`;
   }).join('');
 
   // 바늘 색상 (현재 구간 기준)
@@ -1570,7 +1571,7 @@ const STAGE_COLORS={
   '75%(Commit)':   {bg:'rgba(217,119,6,.1)',   color:'#d97706'},
   '90%(Won)':      {bg:'rgba(22,163,74,.1)',   color:'#16a34a'},
   '100%(Invoice)': {bg:'rgba(220,38,38,.1)',   color:'#dc2626'},
-  '0%(Lost)':      {bg:'rgba(136,144,168,.1)', color:'#8890a8'},
+  '0%(Lost)':      {bg:'rgba(136,144,168,.1)', color:'#4a5568'},
 };
 
 function toggleFilter(type,btn){
@@ -1641,7 +1642,7 @@ function renderPipeList(){
 
   tbody.innerHTML=filtered.map(r=>{
     const stage=r['상태']||'—';
-    const sc=STAGE_COLORS[stage]||{bg:'rgba(136,144,168,.1)',color:'#8890a8'};
+    const sc=STAGE_COLORS[stage]||{bg:'rgba(136,144,168,.1)',color:'#4a5568'};
     const rev=parseFloat(r['계약 금액'])||0;
     const mar=parseFloat(r['예상 마진'])||0;
     return `<tr>
@@ -1748,12 +1749,12 @@ function renderIbList(){
     '50%(Best)':{bg:'rgba(8,145,178,.1)',color:'#0891b2'},
     '75%(Commit)':{bg:'rgba(217,119,6,.1)',color:'#d97706'},
     '90%(Won)':{bg:'rgba(22,163,74,.1)',color:'#16a34a'},
-    '100%(Invoice)':{bg:'rgba(136,144,168,.1)',color:'#8890a8'},
+    '100%(Invoice)':{bg:'rgba(136,144,168,.1)',color:'#4a5568'},
   };
 
   tbody.innerHTML=filtered.map(r=>{
     const stage=r['상태']||'—';
-    const sc=STAGE_COLORS[stage]||{bg:'rgba(136,144,168,.1)',color:'#8890a8'};
+    const sc=STAGE_COLORS[stage]||{bg:'rgba(136,144,168,.1)',color:'#4a5568'};
     const mar=parseFloat(r['예상 마진'])||0;
     const ib=getIb(r);
     return `<tr>
@@ -2101,7 +2102,7 @@ function renderProject(pjName){
       '90%(Won)':{bg:'rgba(8,145,178,.1)',color:'#0891b2'},
       '75%(Commit)':{bg:'rgba(217,119,6,.1)',color:'#d97706'},
       '50%(Best)':{bg:'rgba(37,99,235,.1)',color:'#2563eb'},
-      '25% (Pipeline)':{bg:'rgba(136,144,168,.1)',color:'#8890a8'},
+      '25% (Pipeline)':{bg:'rgba(136,144,168,.1)',color:'#4a5568'},
       '0%(Lost)':{bg:'rgba(220,38,38,.1)',color:'#dc2626'},
     };
 
@@ -2112,7 +2113,7 @@ function renderProject(pjName){
       const mat=parseFloat(r['예상 매입'])||0;
       const gm=parseFloat(r['예상 마진'])||0;
       const stage=r['상태']||'—';
-      const sc=STAGE_COLOR_MAP[stage]||{bg:'rgba(136,144,168,.1)',color:'#8890a8'};
+      const sc=STAGE_COLOR_MAP[stage]||{bg:'rgba(136,144,168,.1)',color:'#4a5568'};
       tbody.innerHTML+=`<tr>
         <td style="text-align:center;color:var(--muted);">${r['회계분기']||'—'}</td>
         <td style="text-align:center;font-family:'DM Mono';font-size:11px;color:var(--muted);">${fmtDate(r['마감일자'])}</td>
