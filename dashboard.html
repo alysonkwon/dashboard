@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>영업 실적 대시보드</title>
+<title>📊Sales Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/css/SpoqaHanSansNeo.css" rel="stylesheet">
@@ -43,7 +43,7 @@
 <div id="pwScreen">
   <div id="pwBox">
     <h2>전략사업본부</h2>
-    <p>영업 실적 대시보드</p>
+    <p>Sales Dashboard</p>
     <input id="pwInput" type="password" placeholder="비밀번호 입력"
       onkeydown="if(event.key==='Enter')checkPw()">
     <button id="pwBtn" onclick="checkPw()">입장</button>
@@ -164,7 +164,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
 .fx-title{font-size:10pt;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:6px;}
 .fx-pair{display:flex;align-items:center;gap:7px;padding:5px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
 .fx-name{font-size:10pt;color:var(--muted);min-width:54px;}
-.fx-rate{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
+.fx-rate{font-size:15px;font-weight:600;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;color:var(--text);}
 .fx-chg{font-size:10pt;font-weight:500;padding:2px 7px;border-radius:99px;}
 .fx-chg.up{background:rgba(22,163,74,.1);color:var(--green);}
 .fx-chg.dn{background:rgba(220,38,38,.1);color:var(--red);}
@@ -177,7 +177,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 14px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
 .kpi-label{font-size:10pt;color:var(--muted);margin-bottom:6px;font-weight:500;}
-.kpi-val{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:-.5px;color:var(--text);}
+.kpi-val{font-size:22px;font-weight:700;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;letter-spacing:-.5px;color:var(--text);}
 .kpi-sub{font-size:10pt;margin-top:4px;font-weight:500;}
 .up{color:var(--green)}.dn{color:var(--red)}.neu{color:var(--muted)}
 
@@ -190,7 +190,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
 .bar-label{font-size:10pt;color:var(--muted);width:80px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bar-wrap{flex:1;height:20px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative;}
 .bar-fill{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1);}
-.bar-val{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:10pt;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
+.bar-val{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:10pt;font-weight:600;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;color:var(--text);}
 
 .stage-item{margin-bottom:11px;}
 .stage-header{display:flex;justify-content:space-between;margin-bottom:4px;}
@@ -202,7 +202,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
 .yoy-q{font-size:12pt;color:var(--muted);margin-bottom:8px;font-weight:600;}
 .yoy-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
 .yoy-year{font-size:10pt;color:var(--muted);}
-.yoy-mar{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);}
+.yoy-mar{font-size:14px;font-weight:700;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;color:var(--text);}
 .yoy-change{font-size:12pt;font-weight:700;margin-top:8px;padding:5px 8px;border-radius:7px;text-align:center;}
 .yoy-pipe{font-size:10pt;color:var(--amber);margin-top:4px;text-align:center;font-weight:500;}
 
@@ -210,7 +210,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
 .tbl th{font-size:12pt;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);font-weight:600;white-space:nowrap;background:var(--surface2);font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .tbl th:first-child{border-radius:6px 0 0 0;}
 .tbl th:last-child{border-radius:0 6px 0 0;}
-.tbl td{font-size:10pt;padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;color:var(--text);}
+.tbl td{font-size:10pt;padding:8px 10px;border-bottom:1px solid var(--border);font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;text-align:right;white-space:nowrap;color:var(--text);}
 .tbl td.txt{font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;color:var(--muted);text-align:left;}
 .tbl tr:last-child td{border-bottom:none;font-weight:700;}
 .tbl tr:hover td{background:var(--surface2);}
@@ -220,7 +220,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
 .vendor-name{font-size:10pt;color:var(--text);margin-bottom:3px;font-weight:500;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .vendor-bars{display:flex;gap:3px;height:11px;}
 .vbar{height:100%;border-radius:2px;min-width:2px;transition:width .7s cubic-bezier(.4,0,.2,1);}
-.vendor-vals{display:flex;gap:10px;margin-top:3px;font-size:10pt;font-family:'DM Mono',monospace;}
+.vendor-vals{display:flex;gap:10px;margin-top:3px;font-size:10pt;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .legend-row{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;}
 .leg{display:flex;align-items:center;gap:5px;font-size:10pt;color:var(--muted);}
 .leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
@@ -238,7 +238,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
 .stage-pill{display:inline-block;font-size:10pt;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 .pipe-summary-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;}
 .pipe-summary-label{font-size:10pt;color:var(--muted);margin-bottom:3px;font-weight:500;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
-.pipe-summary-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;}
+.pipe-summary-val{font-size:15px;font-weight:700;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;}
 
 @media(max-width:768px){
   #sidebar{width:var(--sidebar-collapsed);}
@@ -362,7 +362,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
     <!-- 게이지 차트 -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
-        <div class="card-title" style="margin-bottom:0;">달성율</div>
+        <div class="card-title" style="margin-bottom:0;">타겟 달성률</div>
         <div class="filter-wrap">
           <button class="f-btn gauge-btn active" data-val="전체" onclick="switchGauge(this)">전체</button>
           <button class="f-btn gauge-btn" data-val="Q1" onclick="switchGauge(this)">Q1</button>
@@ -373,21 +373,21 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;" id="gaugeWrap">
         <div style="text-align:center;">
-          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">Revenue 달성율</div>
+          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">Revenue 타겟 달성률</div>
           <svg id="gaugeRev" viewBox="0 0 200 110" style="width:100%;max-width:260px;"></svg>
-          <div id="gaugeRevLabel" style="font-size:14pt;font-weight:700;font-family:'DM Mono',monospace;margin-top:-8px;"></div>
+          <div id="gaugeRevLabel" style="font-size:14pt;font-weight:700;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;margin-top:-8px;"></div>
           <div id="gaugeRevSub" style="font-size:10pt;color:var(--muted);margin-top:4px;"></div>
         </div>
         <div style="text-align:center;">
-          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">GM 달성율</div>
+          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">GM 타겟 달성률</div>
           <svg id="gaugeGm" viewBox="0 0 200 110" style="width:100%;max-width:260px;"></svg>
-          <div id="gaugeGmLabel" style="font-size:14pt;font-weight:700;font-family:'DM Mono',monospace;margin-top:-8px;"></div>
+          <div id="gaugeGmLabel" style="font-size:14pt;font-weight:700;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;margin-top:-8px;"></div>
           <div id="gaugeGmSub" style="font-size:10pt;color:var(--muted);margin-top:4px;"></div>
         </div>
         <div style="text-align:center;">
-          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">GM(±IB) 달성율</div>
+          <div style="font-size:10pt;color:var(--muted);font-weight:500;margin-bottom:8px;">GM(±IB) 타겟 달성률</div>
           <svg id="gaugeGmIb" viewBox="0 0 200 110" style="width:100%;max-width:260px;"></svg>
-          <div id="gaugeGmIbLabel" style="font-size:14pt;font-weight:700;font-family:'DM Mono',monospace;margin-top:-8px;"></div>
+          <div id="gaugeGmIbLabel" style="font-size:14pt;font-weight:700;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;margin-top:-8px;"></div>
           <div id="gaugeGmIbSub" style="font-size:10pt;color:var(--muted);margin-top:4px;"></div>
         </div>
       </div>
@@ -395,7 +395,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
 
     <!-- 분기별 표 (전체 너비) -->
     <div class="card">
-      <div class="card-title">26년 분기별 상세 (75%↑ 반영)</div>
+      <div class="card-title">분기실적 & 전망 (75% 이상)</div>
       <div style="overflow-x:auto;">
         <table class="tbl">
           <thead><tr>
@@ -404,7 +404,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
             <th style="text-align:center;">Revenue</th>
             <th style="text-align:center;">GM</th>
             <th style="text-align:center;">GM(±IB)</th>
-            <th style="text-align:center;">GM 달성율</th>
+            <th style="text-align:center;">GM 타겟 달성률</th>
             <th style="text-align:center;">비고</th>
           </tr></thead>
           <tbody id="summaryBody"></tbody>
@@ -419,7 +419,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
     <!-- 분기별 GM 차트 + 영업구분 -->
     <div class="grid2">
       <div class="card">
-        <div class="card-title">26년 분기별 GM — 확정 vs 예측</div>
+        <div class="card-title">분기별 GM 실적 & 예측</div>
         <div style="position:relative;height:200px;"><canvas id="qChart" role="img" aria-label="26년 분기별 GM"></canvas></div>
         <div class="legend-row">
           <div class="leg"><div class="leg-dot" style="background:rgba(37,99,235,.8)"></div>확정 (100%)</div>
@@ -427,7 +427,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
         </div>
       </div>
       <div class="card">
-        <div class="card-title">영업구분별 GM (26년 확정)</div>
+        <div class="card-title">계약유형별 GM</div>
         <div id="typeChart" class="bar-chart"></div>
       </div>
     </div>
@@ -440,7 +440,7 @@ body{background:var(--bg);color:var(--text);font-family:'Spoqa Han Sans Neo','No
       <div class="yoy-grid" id="yoyCards"></div>
     </div>
     <div class="card">
-      <div class="card-title">분기별 상세 테이블</div>
+      <div class="card-title">분기별 실적 요약</div>
       <table class="tbl">
         <thead><tr>
           <th style="text-align:left;">분기</th>
@@ -974,7 +974,7 @@ async function loadData(){
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
           <span style="font-size:10pt;font-weight:500;color:var(--muted);">${title}</span>${yoyHtml}
         </div>
-        <div style="font-size:32px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);letter-spacing:-1px;margin-bottom:6px;">${(val/1e8).toFixed(1)}<span style="font-size:16px;font-weight:500;margin-left:2px;">억원</span></div>
+        <div style="font-size:32px;font-weight:700;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;color:var(--text);letter-spacing:-1px;margin-bottom:6px;">${(val/1e8).toFixed(1)}<span style="font-size:16px;font-weight:500;margin-left:2px;">억원</span></div>
         <div style="font-size:9pt;color:var(--muted);margin-bottom:12px;">100% 계산서 발행 기준</div>
         <div style="border-top:1px solid var(--border);padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:10pt;color:var(--muted);">Target ${tgtVal?fmt(tgtVal):'—'}</span>
@@ -999,9 +999,9 @@ async function loadData(){
       const gmAchv=tq.gm?gmIb/tq.gm*100:null;
       const achvStr=gmAchv!==null?`<span style="color:${achvColor(gmAchv)};font-weight:700;">${gmAchv.toFixed(1)}%</span>`:'—';
       const badge=d.isConfirmed
-        ?`<span style="font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(37,99,235,.1);color:var(--accent);">확정</span>`
+        ?`<span style="font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10pt;padding:3px 10px;border-radius:99px;background:rgba(0,45,104,.1);color:var(--accent);">확정</span>`
         :d.invCnt>0||d.pipeCnt>0
-          ?`<span style="font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(217,119,6,.1);color:var(--amber);">예측</span>`
+          ?`<span style="font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:10pt;padding:3px 10px;border-radius:99px;background:rgba(217,119,6,.1);color:var(--amber);">예측</span>`
           :`<span style="color:var(--muted);">—</span>`;
       const rowBg=d.isConfirmed?'rgba(37,99,235,.02)':'rgba(217,119,6,.02)';
       tbody.innerHTML+=`<tr style="background:${rowBg};">
@@ -1142,7 +1142,7 @@ async function loadData(){
       tDiv.innerHTML+=`<div style="margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
           <span style="font-size:12pt;font-weight:500;">${name}</span>
-          <span style="font-size:10pt;color:var(--muted);font-family:'DM Mono';">${fmt(gm)}</span>
+          <span style="font-size:10pt;color:var(--muted);font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;">${fmt(gm)}</span>
         </div>
         <div class="bar-wrap" style="height:16px;"><div class="bar-fill" style="width:${(gm/maxT*100).toFixed(1)}%;background:${c}"></div></div>
       </div>`;
@@ -1223,7 +1223,7 @@ async function loadData(){
       fDiv.innerHTML+=`<div style="margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
           <span style="font-size:11pt;font-weight:500;">${s}</span>
-          <span style="font-size:10pt;color:var(--muted);font-family:'DM Mono';">${d.cnt}건 · ${fmt(d.pmar)}</span>
+          <span style="font-size:10pt;color:var(--muted);font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;">${d.cnt}건 · ${fmt(d.pmar)}</span>
         </div>
         <div style="height:28px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
           <div style="height:100%;width:${barW}%;background:${c};border-radius:6px;opacity:.85;transition:width .7s cubic-bezier(.4,0,.2,1);"></div>
@@ -1647,7 +1647,7 @@ function renderPipeList(){
     const mar=parseFloat(r['예상 마진'])||0;
     return `<tr>
       <td style="text-align:center;"><span class="stage-pill" style="background:${sc.bg};color:${sc.color}">${stage}</span></td>
-      <td style="text-align:center;font-family:'DM Mono';font-size:11px;color:var(--muted);">${fmtDate(r['마감일자'])}</td>
+      <td style="text-align:center;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:11px;color:var(--muted);">${fmtDate(r['마감일자'])}</td>
       <td style="text-align:center;font-family:'Noto Sans KR';font-weight:500;color:var(--text);">${r['고객사명']||'—'}</td>
       <td style="text-align:left;font-family:'Noto Sans KR';color:var(--muted);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r['프로젝트명']||'—'}</td>
       <td style="text-align:center;font-family:'Noto Sans KR';color:var(--muted);">${r['제조사']||'—'}</td>
@@ -2116,7 +2116,7 @@ function renderProject(pjName){
       const sc=STAGE_COLOR_MAP[stage]||{bg:'rgba(136,144,168,.1)',color:'#4a5568'};
       tbody.innerHTML+=`<tr>
         <td style="text-align:center;color:var(--muted);">${r['회계분기']||'—'}</td>
-        <td style="text-align:center;font-family:'DM Mono';font-size:11px;color:var(--muted);">${fmtDate(r['마감일자'])}</td>
+        <td style="text-align:center;font-family:'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;font-size:11px;color:var(--muted);">${fmtDate(r['마감일자'])}</td>
         <td style="text-align:right;">${fmt(rev)}</td>
         <td style="text-align:right;color:var(--muted);">${fmt(mat)}</td>
         <td style="text-align:right;color:${stage==='100%(Invoice)'?'var(--green)':'var(--text)'};">${fmt(gm)}</td>
