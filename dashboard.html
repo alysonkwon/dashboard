@@ -6,15 +6,150 @@
 <title>영업 실적 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ── 비밀번호 화면 ── */
+#pwScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:#f8f9fc;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Noto Sans KR',sans-serif;
+}
+#pwBox{
+  background:#fff;border:1px solid #e2e6ef;border-radius:16px;
+  padding:40px 36px;box-shadow:0 4px 24px rgba(0,0,0,.08);
+  width:100%;max-width:360px;text-align:center;
+}
+#pwBox h2{font-size:16pt;font-weight:700;color:#1a1d2e;margin-bottom:6px;}
+#pwBox p{font-size:10pt;color:#8890a8;margin-bottom:24px;}
+#pwInput{
+  width:100%;padding:10px 14px;border:1px solid #e2e6ef;border-radius:8px;
+  font-family:'Noto Sans KR',sans-serif;font-size:11pt;color:#1a1d2e;
+  outline:none;text-align:center;letter-spacing:4px;margin-bottom:12px;
+  transition:border .15s;
+}
+#pwInput:focus{border-color:#2563eb;}
+#pwBtn{
+  width:100%;padding:11px;background:#2563eb;color:#fff;border:none;
+  border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:11pt;
+  font-weight:600;cursor:pointer;transition:background .15s;
+}
+#pwBtn:hover{background:#1d4ed8;}
+#pwError{font-size:10pt;color:#dc2626;margin-top:10px;min-height:18px;}
+</style>
+
+<!-- 비밀번호 화면 -->
+<div id="pwScreen">
+  <div id="pwBox">
+    <h2>전략사업본부</h2>
+    <p>영업 실적 대시보드</p>
+    <input id="pwInput" type="password" placeholder="비밀번호 입력"
+      onkeydown="if(event.key==='Enter')checkPw()">
+    <button id="pwBtn" onclick="checkPw()">입장</button>
+    <div id="pwError"></div>
+  </div>
+</div>
+
+<script>
+// ★ 비밀번호 변경 시 여기만 수정
+const DASHBOARD_PW = 'sc2026!';
+
+function checkPw(){
+  const input=document.getElementById('pwInput').value;
+  if(input===DASHBOARD_PW){
+    document.getElementById('pwScreen').style.display='none';
+    document.getElementById('pwInput').value='';
+  } else {
+    const err=document.getElementById('pwError');
+    err.textContent='비밀번호가 올바르지 않아요';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+    setTimeout(()=>{err.textContent='';},2500);
+  }
+}
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f8f9fc;--surface:#ffffff;--surface2:#f1f3f8;--border:#e2e6ef;
-  --text:#1a1d2e;--muted:#8890a8;--accent:#2563eb;--accent2:#7c3aed;
+  --bg:#f0f2f7;--surface:#ffffff;--surface2:#f1f3f8;--border:#e2e6ef;
+  --text:#1a1d2e;--muted:#8890a8;--accent:#002D68;--accent2:#1a4a9e;
   --green:#16a34a;--red:#dc2626;--amber:#d97706;--teal:#0891b2;
+  --sidebar-w:220px;--sidebar-collapsed:60px;
 }
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:10pt;min-height:100vh;}
-.container{max-width:1280px;margin:0 auto;padding:20px;}
+
+/* ── 레이아웃 ── */
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:10pt;min-height:100vh;display:flex;}
+
+/* 사이드바 */
+#sidebar{
+  width:var(--sidebar-w);min-height:100vh;background:var(--accent);
+  display:flex;flex-direction:column;transition:width .25s cubic-bezier(.4,0,.2,1);
+  position:fixed;left:0;top:0;bottom:0;z-index:100;overflow:hidden;
+}
+#sidebar.collapsed{width:var(--sidebar-collapsed);}
+
+.sb-logo{
+  padding:20px 16px 16px;display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid rgba(255,255,255,.12);min-height:64px;
+}
+.sb-logo-icon{
+  width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-size:14px;font-weight:700;color:#fff;
+}
+.sb-logo-text{color:#fff;font-size:11pt;font-weight:700;white-space:nowrap;opacity:1;transition:opacity .2s;}
+#sidebar.collapsed .sb-logo-text{opacity:0;width:0;overflow:hidden;}
+
+.sb-section{padding:12px 8px 4px;font-size:8pt;font-weight:600;color:rgba(255,255,255,.4);
+  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;}
+#sidebar.collapsed .sb-section{opacity:0;}
+
+.sb-nav{list-style:none;padding:0 8px;flex:1;}
+.sb-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
+  cursor:pointer;margin-bottom:2px;transition:background .15s;
+  color:rgba(255,255,255,.65);font-size:10pt;font-weight:500;white-space:nowrap;
+}
+.sb-item:hover{background:rgba(255,255,255,.1);color:#fff;}
+.sb-item.active{background:rgba(255,255,255,.18);color:#fff;}
+.sb-icon{font-size:15px;flex-shrink:0;width:20px;text-align:center;}
+.sb-label{transition:opacity .2s;white-space:nowrap;}
+#sidebar.collapsed .sb-label{opacity:0;width:0;overflow:hidden;}
+
+.sb-bottom{padding:12px 8px;border-top:1px solid rgba(255,255,255,.12);}
+.sb-toggle{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
+  cursor:pointer;color:rgba(255,255,255,.6);font-size:10pt;transition:all .15s;
+  background:none;border:none;width:100%;font-family:'Noto Sans KR',sans-serif;
+}
+.sb-toggle:hover{background:rgba(255,255,255,.1);color:#fff;}
+.sb-toggle-icon{font-size:15px;flex-shrink:0;width:20px;text-align:center;transition:transform .25s;}
+#sidebar.collapsed .sb-toggle-icon{transform:rotate(180deg);}
+#sidebar.collapsed .sb-toggle-label{opacity:0;width:0;overflow:hidden;}
+.sb-toggle-label{white-space:nowrap;transition:opacity .2s;}
+
+/* 메인 콘텐츠 */
+#mainWrap{
+  margin-left:var(--sidebar-w);flex:1;min-height:100vh;
+  transition:margin-left .25s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+#mainWrap.collapsed{margin-left:var(--sidebar-collapsed);}
+
+/* 상단 헤더바 */
+#topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 24px;height:64px;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:90;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.topbar-left{display:flex;flex-direction:column;}
+.topbar-title{font-size:14pt;font-weight:700;color:var(--text);}
+.topbar-sub{font-size:9pt;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+
+/* 콘텐츠 영역 */
+.container{padding:20px 24px;flex:1;}
 
 .loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px;}
 .loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
@@ -22,14 +157,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 @keyframes spin{to{transform:rotate(360deg)}}
 .hidden{display:none!important;}
 
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
-.header-title{font-size:18px;font-weight:700;color:var(--text);}
-.header-sub{font-size:10pt;color:var(--muted);margin-top:2px;}
 .last-updated{font-size:10pt;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:99px;}
 
-.fx-banner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.fx-banner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
 .fx-title{font-size:10pt;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:6px;}
-.fx-pair{display:flex;align-items:center;gap:7px;padding:6px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
+.fx-pair{display:flex;align-items:center;gap:7px;padding:5px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
 .fx-name{font-size:10pt;color:var(--muted);min-width:54px;}
 .fx-rate{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
 .fx-chg{font-size:10pt;font-weight:500;padding:2px 7px;border-radius:99px;}
@@ -38,11 +170,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .fx-chg.flat{background:rgba(136,144,168,.1);color:var(--muted);}
 .fx-src{margin-left:auto;font-size:10pt;color:var(--muted);}
 
-.tabs{display:flex;gap:3px;background:var(--surface);border-radius:10px;padding:4px;border:1px solid var(--border);margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
-.tab{flex:1;padding:8px 0;text-align:center;border-radius:7px;cursor:pointer;font-size:12pt;font-weight:500;color:var(--muted);transition:all .15s;border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;}
-.tab.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(37,99,235,.3);}
-.tab:hover:not(.active){color:var(--text);background:var(--surface2);}
-
+/* 탭 패널 */
 .panel{display:none;}.panel.active{display:grid;gap:12px;}
 
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
@@ -101,7 +229,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .filter-label{font-size:10pt;color:var(--muted);font-weight:500;min-width:40px;font-family:'Noto Sans KR',sans-serif;}
 .filter-wrap{display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);}
 .f-btn{background:transparent;border:none;border-radius:6px;padding:5px 11px;font-size:10pt;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'Noto Sans KR',sans-serif;}
-.f-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(37,99,235,.25);}
+.f-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(0,45,104,.25);}
 .f-btn:hover:not(.active){background:var(--surface);color:var(--text);}
 .reset-btn{font-size:10pt;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;}
 .reset-btn:hover{border-color:var(--accent);color:var(--accent);}
@@ -112,73 +240,38 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .pipe-summary-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;}
 
 @media(max-width:768px){
-  /* 레이아웃 */
+  #sidebar{width:var(--sidebar-collapsed);}
+  #sidebar .sb-label,#sidebar .sb-logo-text,#sidebar .sb-section,#sidebar .sb-toggle-label{opacity:0;width:0;overflow:hidden;}
+  #mainWrap{margin-left:var(--sidebar-collapsed);}
   .container{padding:12px;}
   .kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
   .yoy-grid{grid-template-columns:repeat(2,1fr);}
   .grid2{grid-template-columns:1fr;}
-
-  /* 헤더 */
-  .header{flex-direction:column;align-items:flex-start;gap:8px;}
-  .header-title{font-size:15px;}
-  .header-sub{font-size:9pt;}
-  .last-updated{font-size:9pt;}
-
-  /* 탭 - 가로 스크롤 */
-  .tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
-  .tab{flex-shrink:0;font-size:10pt;padding:7px 12px;white-space:nowrap;}
-
-  /* 카드 */
   .card{padding:14px;}
   .card-title{font-size:11pt;}
-
-  /* KPI */
   .kpi{padding:12px 10px;}
   .kpi-val{font-size:18px;}
   .kpi-label{font-size:9pt;}
   .kpi-sub{font-size:9pt;}
-
-  /* 게이지 3개 → 1열 */
   #gaugeWrap{grid-template-columns:1fr!important;}
-
-  /* 표 */
   .tbl th{font-size:10pt;padding:6px 7px;}
   .tbl td{font-size:9pt;padding:6px 7px;}
-
-  /* 필터 버튼 */
   .filter-wrap{flex-wrap:wrap;}
   .f-btn{font-size:9pt;padding:4px 9px;}
-
-  /* YoY 카드 */
   .yoy-card{padding:10px;}
   .yoy-mar{font-size:12px;}
-
-  /* 바 차트 */
   .bar-val{font-size:9pt;}
   .bar-label{font-size:9pt;}
-
-  /* 환율 배너 */
   .fx-pair{padding:5px 9px;}
   .fx-rate{font-size:13px;}
-
-  /* 헤더 연도 선택기 */
-  .header>div:last-child{flex-wrap:wrap;gap:6px;}
+  #topbar{padding:0 14px;height:auto;min-height:56px;flex-wrap:wrap;gap:6px;padding-top:8px;padding-bottom:8px;}
 }
 
 @media(max-width:480px){
   .kpi-grid{grid-template-columns:1fr 1fr;}
   .yoy-grid{grid-template-columns:1fr 1fr;}
-
-  /* 상단 KPI 카드 3개 → 1열 */
   #kpiCards{grid-template-columns:1fr!important;}
-
-  /* 게이지 */
   #gaugeWrap{grid-template-columns:1fr!important;}
-
-  /* 탭 폰트 더 작게 */
-  .tab{font-size:9pt;padding:6px 10px;}
-
-  /* 표 스크롤 */
   .tbl th{font-size:9pt;padding:5px 6px;}
   .tbl td{font-size:9pt;padding:5px 6px;}
 }
@@ -191,13 +284,51 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <div class="loading-text">데이터 불러오는 중...</div>
 </div>
 
-<div class="container">
-  <div class="header">
-    <div>
-      <div class="header-title">전략사업본부 영업 실적 대시보드</div>
-      <div class="header-sub"><span id='header_years'></span> 실적 &amp; 파이프라인</div>
+<!-- 사이드바 -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">SC</div>
+    <span class="sb-logo-text">전략사업본부</span>
+  </div>
+  <div class="sb-section">MENU</div>
+  <ul class="sb-nav">
+    <li class="sb-item active" onclick="switchTab('summary',this)">
+      <span class="sb-icon">📊</span><span class="sb-label">전체 요약</span>
+    </li>
+    <li class="sb-item" onclick="switchTab('yoy',this)">
+      <span class="sb-icon">📈</span><span class="sb-label">YoY 비교</span>
+    </li>
+    <li class="sb-item" onclick="switchTab('pipeline',this)">
+      <span class="sb-icon">🔀</span><span class="sb-label">파이프라인</span>
+    </li>
+    <li class="sb-item" onclick="switchTab('vendor',this)">
+      <span class="sb-icon">🏢</span><span class="sb-label">벤더 분석</span>
+    </li>
+    <li class="sb-item" onclick="switchTab('ib',this)">
+      <span class="sb-icon">💱</span><span class="sb-label">인터빌링</span>
+    </li>
+    <li class="sb-item" onclick="switchTab('project',this)">
+      <span class="sb-icon">📁</span><span class="sb-label">프로젝트</span>
+    </li>
+  </ul>
+  <div class="sb-bottom">
+    <button class="sb-toggle" onclick="toggleSidebar()">
+      <span class="sb-toggle-icon">◀</span>
+      <span class="sb-toggle-label">접기</span>
+    </button>
+  </div>
+</nav>
+
+<!-- 메인 콘텐츠 -->
+<div id="mainWrap">
+
+  <!-- 상단 헤더바 -->
+  <div id="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="topbarTitle">전체 요약</div>
+      <div class="topbar-sub"><span id='header_years'></span> 실적 &amp; 파이프라인</div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div class="topbar-right">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10pt;color:var(--muted);font-weight:500;">기준연도</span>
         <div class="filter-wrap">
@@ -211,22 +342,17 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     </div>
   </div>
 
-  <div class="fx-banner">
-    <span class="fx-title">환율</span>
-    <div id="fxContent" style="display:flex;gap:6px;flex-wrap:wrap;"><span style="color:var(--muted);font-size:12px;">불러오는 중...</span></div>
-    <span class="fx-src" id="fxSrc"></span>
+  <!-- 환율 배너 -->
+  <div style="padding:12px 24px 0;">
+    <div class="fx-banner">
+      <span class="fx-title">환율</span>
+      <div id="fxContent" style="display:flex;gap:6px;flex-wrap:wrap;"><span style="color:var(--muted);font-size:12px;">불러오는 중...</span></div>
+      <span class="fx-src" id="fxSrc"></span>
+    </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('summary')">전체 요약</button>
-    <button class="tab" onclick="switchTab('yoy')">YoY 분기 비교</button>
-    <button class="tab" onclick="switchTab('pipeline')">파이프라인</button>
-    <button class="tab" onclick="switchTab('vendor')">벤더 분석</button>
-    <button class="tab" onclick="switchTab('ib')">인터빌링</button>
-    <button class="tab" onclick="switchTab('project')">프로젝트</button>
-  </div>
-
-  <!-- 전체 요약 -->
+  <!-- 패널 콘텐츠 -->
+  <div class="container">
   <div class="panel active" id="panel-summary">
 
     <!-- 상단 카드 3개 (100% Invoice 기준) -->
@@ -606,7 +732,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     </div>
   </div>
 
-</div>
+</div><!-- /.container -->
+</div><!-- /#mainWrap -->
 
 <script>
 let BASE_YEAR = 2026; // ← 연도 변경 시 여기만 수정
@@ -709,13 +836,25 @@ function fmtDate(val){
   return String(val).slice(0,10);
 }
 
-function switchTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['summary','yoy','pipeline','vendor','ib','project'][i]===name);
-  });
+// ── 사이드바 ──────────────────────────────────────
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.getElementById('mainWrap').classList.toggle('collapsed');
+}
+
+const TAB_LABELS={
+  summary:'전체 요약', yoy:'YoY 비교', pipeline:'파이프라인',
+  vendor:'벤더 분석', ib:'인터빌링', project:'프로젝트'
+};
+
+function switchTab(name, el){
+  document.querySelectorAll('.sb-item').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
   document.querySelectorAll('.panel').forEach(p=>{
     p.classList.toggle('active',p.id==='panel-'+name);
   });
+  const titleEl=document.getElementById('topbarTitle');
+  if(titleEl) titleEl.textContent=TAB_LABELS[name]||name;
 }
 
 // 환율
